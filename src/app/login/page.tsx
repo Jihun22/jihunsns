@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { signIn } from 'next-auth/react'
 
 export  default function  LoginPage() {
     const [form, setForm] = useState({email:'', password:''})
@@ -16,18 +17,18 @@ export  default function  LoginPage() {
 
     const handleSubmit = async (e:React.FormEvent) => {
         e.preventDefault()
-        const res = await fetch('/api/auth/login', {
-            method: 'POST',
-            headers: {'content-type': 'application/json'},
-            body: JSON.stringify(form),
+        const res = await signIn('credentials', {
+            redirect: false,
+            email: form.email,
+            password: form.password,
         })
 
-        const data = await  res.json()
-        if (res.ok) {
+
+        if (res?.ok) {
             setMessage('로그인 성공!')
             router.push('/')
         }else {
-            setMessage(data.error)
+            setMessage('로그인 실패 ')
         }
     }
 
