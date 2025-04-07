@@ -12,6 +12,9 @@ export default async function Page() {
                 <>
                 <p>안녕하세요, {session.user.name}님 (ID: {session.user.id})</p>
                     <LogoutButton />      {/*로그아웃 버튼 */}
+                    <Link href="/profile" className="text-blue-500 underline">
+                        프로필 보기
+                    </Link>
 
                 </>
             ) : (
