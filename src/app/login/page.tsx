@@ -3,6 +3,8 @@
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { signIn } from 'next-auth/react'
+import LogoutButton from "@/components/LogoutButton";
+import SignupButton from "@/components/SignupButton";
 
 export  default function  LoginPage() {
     const [form, setForm] = useState({email:'', password:''})
@@ -52,8 +54,10 @@ export  default function  LoginPage() {
                     className="border p-2 w-full"
                     />
                 <button type ="submit" className="bg-blue-500 text-white px-4 py-2"> 로그인 </button>
+                <SignupButton />
             </form>
             {message && <p className ="mt-2 text-sm text-red-500">{message}</p>}
+
 
         </div>
     )

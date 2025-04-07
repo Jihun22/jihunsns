@@ -1,7 +1,10 @@
 'use client'
 import React, { useState } from 'react'
+import {router} from "next/client"
+import { useRouter } from 'next/navigation'
 
 export default function SignupPage() {
+    const router = useRouter()
     const [form , setForm] = useState({ email: '' , nickname: '' , password: '' })
     const [message, setMessage] = useState('')
 
@@ -20,6 +23,7 @@ export default function SignupPage() {
         const data = await res.json()
         if(res.ok) {
             setMessage('회원가입 성공!')
+            router.push('/login')
         }else  {
             setMessage(data.error)
         }
