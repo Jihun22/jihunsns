@@ -1,6 +1,7 @@
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import Link from 'next/link'
+import LogoutButton from "@/components/LogoutButton";
 
 export default async function Page() {
     const session = await getServerSession(authOptions)
@@ -8,7 +9,11 @@ export default async function Page() {
     return (
         <div className="p-4">
             {session?.user ? (
+                <>
                 <p>안녕하세요, {session.user.name}님 (ID: {session.user.id})</p>
+                    <LogoutButton />      {/*로그아웃 버튼 */}
+
+                </>
             ) : (
                 <div>
                 <p className={"mb-2"}>로그인이 필요합니다. </p>
