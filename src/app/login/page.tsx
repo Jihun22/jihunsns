@@ -30,7 +30,7 @@ export  default function  LoginPage() {
             setMessage('로그인 성공!')
             router.push('/')
         }else {
-            setMessage('로그인 실패 ')
+            setMessage('로그인 실패')
         }
     }
 
