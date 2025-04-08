@@ -17,7 +17,27 @@ export default function ProfilePageClient() {
         }
     }, [session])
 
+
+    const checkNicknameDuplicate = async (nickname: string) => {
+        const res = await fetch('/api/user/check-nickname', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nickname}),
+        })
+
+        const data =await res.json()
+        return data.exists
+    }
     const handleSubmit = async () => {
+        if (nickname === session?.user.name) {
+            setMessage('기족 닉네임과 동일하다.')
+            return
+        }
+        const isDuplicate = await checkNicknameDuplicate(nickname)
+        if (isDuplicate) {
+            setMessage('이미 사용중인 닉네임')
+            return
+        }
         const res = await fetch('/api/user/nickname', {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },

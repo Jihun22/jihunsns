@@ -17,8 +17,10 @@ export async function PATCH(req: Request) {
             return NextResponse.json({ error: '닉네임을 입력하세요.' }, { status: 400 })
         }
 
+        const userId = parseInt(session.user.id)
+
         const updatedUser = await prisma.user.update({
-            where: { id: Number(session.user.id) },
+            where: { id: userId },
             data: { nickname },
         })
 
