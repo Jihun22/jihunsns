@@ -3,11 +3,13 @@
 import { useSession } from 'next-auth/react'
 import { useState, useEffect } from 'react'
 import BackButton from '@/components/BackButton'
+import {useRouter} from "next/navigation";
 
 export default function ProfilePageClient() {
     const { data: session, status, update } = useSession()
     const [nickname, setNickname] = useState('')
     const [message, setMessage] = useState('')
+    const router = useRouter()
 
     useEffect(() => {
         if (session?.user?.name) {
@@ -23,11 +25,18 @@ export default function ProfilePageClient() {
         })
 
         const data = await res.json()
+
         if (res.ok) {
             setMessage('닉네임 변경 완료!')
-            update()
+            await update()
+
+            if(session?.user) {
+                session.user.name = nickname
+            }
+            router.push('/')
+
         } else {
-            setMessage(data.error || '닉네임 변경 실패')
+            setMessage(data?.error || '닉네임 변경 실패')
         }
     }
 
