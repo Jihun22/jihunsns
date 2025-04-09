@@ -5,6 +5,7 @@ import {useSession} from 'next-auth/react'
 import LogoutButton from '@/components/LogoutButton'
 import ProfileButton from "@/components/ProfileButton";
 import {useEffect, useRef} from "react";
+import LoginPage from "@/app/login/page";
 
 export default function HomeClient() {
     const {data : session , status,update} = useSession()
@@ -20,7 +21,8 @@ export default function HomeClient() {
 if (status == 'loading') return <p> 세션 로딩중 ..</p>
 
 if (!session?.user) {
-    return <p> 로그인 필요 </p>
+    return  <LoginPage/>
+
 }
         return (
         <div>
