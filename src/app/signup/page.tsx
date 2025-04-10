@@ -1,19 +1,44 @@
 'use client'
 import React, { useState } from 'react'
-import {router} from "next/client"
 import { useRouter } from 'next/navigation'
+
 
 export default function SignupPage() {
     const router = useRouter()
-    const [form , setForm] = useState({ email: '' , nickname: '' , password: '' })
+    const [form , setForm] = useState({      email: '' , nickname: '' , password: '' })
     const [message, setMessage] = useState('')
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setForm({ ...form, [e.target.name]: e.target.value })
     }
 
+    const checkDuplicate  = async (email: string,nickname : string) => {
+        const res = await fetch('/api/user/check-nickname', {
+            method:'POST',
+            headers:{'Content-Type': 'application/json'},
+            body: JSON.stringify({email,nickname}),
+        })
+        if (!res.ok){
+            throw new Error('중복 검사 실패')
+        }
+        return await res.json()
+    }
+
     const  handleSubmit = async  (e: React.FormEvent) => {
         e.preventDefault()
+
+        try {
+            const duplicate = await checkDuplicate (form.email, form.nickname)
+
+            if (duplicate.email) {
+                setMessage('이미 사용중인 이메일')
+                return
+            }
+            if(duplicate.nickname){
+                setMessage('이미 사용중인 닉네임')
+                return
+            }
+
         const res = await fetch('/api/auth/signup', {
             method: 'POST',
             body: JSON.stringify(form),
@@ -26,6 +51,10 @@ export default function SignupPage() {
             router.push('/login')
         }else  {
             setMessage(data.error)
+        }
+    } catch (err) {
+        console.log('중복검사 오류', err)
+            setMessage('중복검사 오류')
         }
     }
     return (

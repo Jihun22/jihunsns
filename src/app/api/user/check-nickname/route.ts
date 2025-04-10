@@ -2,19 +2,23 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
 export async function POST(req: Request) {
-    const { nickname } = await req.json()
+    const { email, nickname }: { email?: string; nickname?: string } = await req.json()
 
-    if (!nickname || nickname.trim() === '') {
-        return NextResponse.json({ error: '닉네임을 입력해주세요.' }, { status: 400 })
+    if (!email && !nickname) {
+        return NextResponse.json({ error: '이메일 또는 닉네임이 필요합니다.' }, { status: 400 })
     }
 
-    const existing = await prisma.user.findFirst({
-        where: { nickname },
-    })
+    const result: { email?: boolean; nickname?: boolean } = {}
 
-    if (existing) {
-        return NextResponse.json({ exists: true }, { status: 200 })
-    } else {
-        return NextResponse.json({ exists: false }, { status: 200 })
+    if (email) {
+        const existingEmail = await prisma.user.findUnique({ where: { email } })
+        result.email = Boolean(existingEmail)
     }
+
+    if (nickname) {
+        const existingNickname = await prisma.user.findUnique({ where: { nickname } })
+        result.nickname = Boolean(existingNickname)
+    }
+
+    return NextResponse.json(result)
 }
