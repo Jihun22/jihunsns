@@ -8,6 +8,7 @@ import {useEffect, useRef, useState} from "react";
 import LoginPage from "@/app/login/page";
 import Link from "next/link";
 import WritingListButton from "@/components/WritingListButton";
+import AdminButton from "@/components/AdminButton";
 
 export default function HomeClient() {
     const {data : session , status,update} = useSession()
@@ -52,6 +53,8 @@ if (!session?.user) {
             </div>
             {/* 글 목록 */}
             <WritingListButton />
+            {/*관리자만 보이는 버튼 */}
+            <AdminButton />
 
                     </div>
 
