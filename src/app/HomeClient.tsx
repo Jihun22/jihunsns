@@ -4,7 +4,7 @@
 import {useSession} from 'next-auth/react'
 import LogoutButton from '@/components/LogoutButton'
 import ProfileButton from "@/components/ProfileButton";
-import {useEffect, useRef, useState} from "react";
+import {useEffect, useRef} from "react";
 import LoginPage from "@/app/login/page";
 import Link from "next/link";
 import WritingListButton from "@/components/WritingListButton";
@@ -13,7 +13,6 @@ import AdminButton from "@/components/AdminButton";
 export default function HomeClient() {
     const {data : session , status,update} = useSession()
     const refreshed = useRef(false) //무한루프 방지
-    const [posts, setPosts] = useState([])
 
     useEffect(() => {
         if (!refreshed.current) {
@@ -22,12 +21,6 @@ export default function HomeClient() {
         }
     }, [status,update])
 
-    //게시글 불러오기
-    useEffect(() => {
-        fetch("/api/post")
-            .then(res => res.json())
-            .then(data => setPosts(data))
-    }, []);
 
 
 if (status == 'loading') return <p> 세션 로딩중 ..</p>
@@ -60,18 +53,7 @@ if (!session?.user) {
             </div>
             {/* 글 목록 */}
             <WritingListButton />
-            {/*글 상세 목록*/}
-            {posts.map((post: any) => (
-            <Link key={post.id} href = {`/post/${post.id}`}>
-                <div className="border p-4 rounded shadow-sm hover:bg-gray-50 cursor-pointer">
-                    <p className="text-sm text-gray-500"> {post.author?.nickname}</p>
-                    <p> {post.content}</p>
-                    <p className="text-xs text-gray-400">
-                        {new Date(post.createdAt).toLocaleString()}
-                    </p>
-                </div>
-            </Link>
-    ))}
+
             {/*관리자만 보이는 버튼 */}
             <AdminButton />
 
