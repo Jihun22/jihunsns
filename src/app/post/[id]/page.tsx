@@ -1,29 +1,51 @@
-// app/post/[id]/page.tsx
+// src/app/post/[id]/page.tsx
 import { prisma } from '@/lib/prisma'
 import { notFound } from 'next/navigation'
+import BackButton from "@/components/BackButton";
 
-interface Props {
+type Props = {
     params: { id: string }
 }
 
-export default async function PostDetailPage({ params }: Props) {
+export default async function PostDetailPage(props: Props) {
+    const id = Number(props.params.id)
+    if (isNaN(id)) return notFound()
+
     const post = await prisma.post.findUnique({
-        where: { id: Number(params.id) },
-        include: { author: true },
+        where: { id },
+        include: {
+            author: true,
+            images: true,
+        },
     })
 
-    if (!post) {
-        notFound() // 404
-    }
+    if (!post) return notFound()
 
     return (
-        <div className="max-w-2xl mx-auto p-4 space-y-4">
-            <h1 className="text-xl font-bold">게시글 상세</h1>
-            <p className="text-sm text-gray-500">작성자: {post.author.nickname}</p>
-            <p className="text-base">{post.content}</p>
+        <div className="p-6">
+            <h1 className="text-xl font-bold mb-2">게시글 상세</h1>
+            <p className="text-gray-500">작성자: {post.author?.nickname}</p>
+            <p className="my-4">{post.content}</p>
+
+            {/* 이미지 출력 영역 */}
+            {post.images?.length > 0 && (
+                <div className="flex flex-wrap gap-4 my-4">
+                    {post.images.map((img) => (
+                        <img
+                            key={img.id}
+                            src={encodeURI(img.url)}
+                            alt="첨부 이미지"
+                            className="w-64 h-auto rounded border"
+                        />
+                    ))}
+                </div>
+            )}
+
             <p className="text-xs text-gray-400">
-                작성일: {new Date(post.createdAt).toLocaleString()}
+                {new Date(post.createdAt).toLocaleString()}
             </p>
+
+            <BackButton />
         </div>
     )
 }
