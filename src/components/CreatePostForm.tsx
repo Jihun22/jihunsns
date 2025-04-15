@@ -5,15 +5,15 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
 export default function CreatePostForm() {
-    //글쓰기 폼
+    //✅글쓰기 폼
     const [content, setContent] = useState('')
     const router = useRouter()
 
-    //이미지 관련
+    //✅이미지 관련
     const [images, setImages] = useState<File[]>([])
     const [message, setMessage] = useState('')
 
-    //이미지 파일 선언
+    //✅이미지 파일 선언
     const handleImageChange = (e:React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
             setImages(Array.from(e.target.files))
@@ -72,7 +72,6 @@ export default function CreatePostForm() {
                     {images.map((file,index) => (
                         <p key = {index}> {file.name}</p>
                     ))}
-
                 </div>
             )}
             <button className="bg-blue-500 text-white px-4 py-2 rounded">게시글 등록</button>
