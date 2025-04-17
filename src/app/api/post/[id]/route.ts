@@ -1,6 +1,8 @@
 // src/app/api/post/[id]/route.ts
 import {prisma} from "@/lib/prisma";
 import {NextResponse} from "next/server";
+import path from "path";
+import fs, {writeFile} from "fs/promises";
 
 //게시글 수정
 
@@ -8,16 +10,41 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     const formData = await req.formData()
     const content = formData.get("content")?.toString()
     const id = Number(params.id)
+    const images = formData.getAll("image") as File[]
 
     if(!content || isNaN(id)){
         return NextResponse.json({error: '잘못된 요청입니다.'} , {status:400})
     }
 
+    //게시글 내용 수정
     const updated = await prisma.post.update({
         where: { id },
         data: { content },
     })
 
+    //기존 이미지 삭제
+    await prisma.image.deleteMany({where : { postId:id}})
+
+    // 새 이미지 업로드
+    if(images.length >0) {
+        const uploadDir = path.join(process.cwd(),'public', 'uploads')
+        await fs.mkdir(uploadDir , {recursive:true})
+
+        for(const image of images) {
+            const buffer = Buffer.from(await  image.arrayBuffer())
+            const fileName = encodeURIComponent(image.name)
+            const uploadPath  = path.join(uploadDir , fileName)
+
+            await writeFile(uploadPath,buffer)
+
+            await prisma.image.create ({
+                data: {
+                    url: `/uploads/${fileName}`,
+                    postId:id,
+                },
+            })
+        }
+    }
     return NextResponse.json(updated)
 }
 
