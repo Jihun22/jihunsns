@@ -8,8 +8,8 @@ type Props = {
     params: { id: string }
 }
 
-export default async function PostDetailPage(props: Props) {
-    const id = Number(props.params.id)
+export default async function PostDetailPage({params}: Props) {
+    const id = Number(params.id)
     if (isNaN(id)) return notFound()
 
     const post = await prisma.post.findUnique({
@@ -17,7 +17,11 @@ export default async function PostDetailPage(props: Props) {
         include: {
             author: true,
             images: true,
-        },
+            comments: {
+                include : {author :true},
+                orderBy : {createdAt:'desc'},
+            }
+        }
     })
 
 
@@ -28,6 +32,7 @@ export default async function PostDetailPage(props: Props) {
         <div className="p-6">
             <h1 className="text-xl font-bold mb-2">게시글 상세</h1>
             <p className="text-gray-500">작성자: {post.author?.nickname}</p>
+
 
              <PostDetailClient post={post} />
 
