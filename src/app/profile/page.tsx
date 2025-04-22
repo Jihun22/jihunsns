@@ -1,6 +1,6 @@
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
-import { redirect } from 'next/navigation'
+import {getServerSession} from 'next-auth'
+import {authOptions} from '@/lib/auth'
+import {redirect} from 'next/navigation'
 import ProfilePageClient from './ProfilePageClient' // ✅ 클라이언트 컴포넌트 import
 
 export default async function ProfilePage() {
@@ -10,5 +10,5 @@ export default async function ProfilePage() {
         redirect('/login')
     }
 
-    return <ProfilePageClient /> // ✅ 클라이언트 컴포넌트 렌더링
+    return <ProfilePageClient/> // ✅ 클라이언트 컴포넌트 렌더링
 }

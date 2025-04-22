@@ -1,12 +1,12 @@
 'use client'
 
-import { useSession } from 'next-auth/react'
-import { useState, useEffect } from 'react'
+import {useSession} from 'next-auth/react'
+import {useState, useEffect} from 'react'
 import BackButton from '@/components/BackButton'
 import {useRouter} from "next/navigation";
 
 export default function ProfilePageClient() {
-    const { data: session, status, update } = useSession()
+    const {data: session, status, update} = useSession()
     const [nickname, setNickname] = useState('')
     const [message, setMessage] = useState('')
     const router = useRouter()
@@ -21,11 +21,11 @@ export default function ProfilePageClient() {
     const checkNicknameDuplicate = async (nickname: string) => {
         const res = await fetch('/api/user/check-nickname', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ nickname}),
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({nickname}),
         })
 
-        const data =await res.json()
+        const data = await res.json()
         return data.exists
     }
     const handleSubmit = async () => {
@@ -40,8 +40,8 @@ export default function ProfilePageClient() {
         }
         const res = await fetch('/api/user/nickname', {
             method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ nickname }),
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({nickname}),
         })
 
         const data = await res.json()
@@ -50,7 +50,7 @@ export default function ProfilePageClient() {
             setMessage('닉네임 변경 완료!')
             await update()
 
-            if(session?.user) {
+            if (session?.user) {
                 session.user.name = nickname
             }
             router.push('/')
@@ -85,7 +85,7 @@ export default function ProfilePageClient() {
             </button>
             {message && <p className="text-sm text-green-600">{message}</p>}
 
-            <BackButton />
+            <BackButton/>
         </div>
     )
 }
