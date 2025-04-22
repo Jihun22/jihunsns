@@ -59,6 +59,7 @@ export default async function PostDetailPage({params}: Props) {
                 {new Date(post.createdAt).toLocaleString()}
             </p>
 
+
             <BackButton />
         </div>
     )
