@@ -35,6 +35,8 @@ export default function PostDetailClient({ post}: { post: any }) {
             }
         }
     }
+    // console.log("유저아이디:", currentUserId)
+    // console.log("롤:" ,currentUserRole)
 
 
     return (
@@ -89,14 +91,14 @@ export default function PostDetailClient({ post}: { post: any }) {
                                         {new Date(comment.createdAt).toLocaleString()}
                                     </p>
                                     {/* 본인 또는 admin만 수정 가능 */}
-                                    {/*{(currentUserId === comment.author.id || currentUserRole === 'admin') && (*/}
+                                    {(Number(currentUserId) === comment.author.id || currentUserRole === 'admin') && (
                                         <button
                                             onClick={() => setEditingId(comment.id)}
                                             className="text-blue-600 text-sm mt-1"
                                         >
                                             ✏️ 수정
                                         </button>
-                                    {/*)}*/}
+                                    )}
                                 </>
                             )}
                         </div>
