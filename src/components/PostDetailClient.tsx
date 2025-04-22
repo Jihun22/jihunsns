@@ -5,10 +5,17 @@ import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { useEffect, useState } from 'react'
 import CommentForm from "@/components/CommentForm";
+import EditCommentForm from "@/components/EditCommentForm";
+import {useSession} from "next-auth/react";
 
 export default function PostDetailClient({ post}: { post: any }) {
     const router = useRouter()
+    const {data : session} = useSession()
+    const currentUserId = session?.user?.id
+    const currentUserRole = session?.user?.role
+
     const [comments, setComments] = useState(post.comments || [])
+    const [editingId ,setEditingId] = useState<number | null>(null)
 
     //댓글 작성후 바로 반영 로직
     const fetchComments = async () => {
@@ -54,23 +61,46 @@ export default function PostDetailClient({ post}: { post: any }) {
                     ))}
                 </div>
             )}
-        {/*   댓글 영역 */}
+            {/* 댓글 영역 */}
             <div className="mt-6 space-y-2">
-                <h2 className="text-lg font-semibold"> 댓글 </h2>
+                <h2 className="text-lg font-semibold">댓글</h2>
+                <CommentForm postId={post.id} onSuccess={fetchComments} />
 
-                {/* 댓글 작성 폼 */}
-                <CommentForm postId={post.id} onSuccess={fetchComments}/>
+                {comments.length === 0 ? (
+                    <p className="text-sm text-gray-500">댓글이 없습니다.</p>
+                ) : (
+                    comments.map((comment: any) => (
+                        <div key={comment.id} className="border p-2 rounded">
+                            <p className="text-sm text-gray-500">{comment.author.nickname}</p>
 
-                {/*댓글 목록 */}
-                {comments.length ===0? (
-                    <p className="text-sm text-gray-500"> 댓글이 없습니다. </p>
-                ):(
-                    comments.map((comment:any) => (
-                    <div key={comment.id} className="border p-2 rounded">
-                        <p className="text-sm text-gray-500">{comment.author.nickname}</p>
-                        <p> {comment.content}</p>
-                        <p className="text-xs text-gray-400"> {new Date(comment.createdAt).toLocaleString()}</p>
-                    </div>
+                            {editingId === comment.id ? (
+                                <EditCommentForm
+                                    commentId={comment.id}
+                                    initialContent={comment.content}
+                                    onFinish={() => {
+                                        setEditingId(null)
+                                        fetchComments()
+                                    }}
+                                />
+                            ) : (
+                                <>
+                                    <p>{comment.content}</p>
+                                    <p className="text-xs text-gray-400">
+                                        {new Date(comment.createdAt).toLocaleString()}
+                                    </p>
+                                    {/* 본인 또는 admin만 수정 가능 */}
+                                    {/*{(currentUserId === comment.author.id || currentUserRole === 'admin') && (*/}
+                                        <button
+                                            onClick={() => setEditingId(comment.id)}
+                                            className="text-blue-600 text-sm mt-1"
+                                        >
+                                            ✏️ 수정
+                                        </button>
+                                    {/*)}*/}
+                                </>
+                            )}
+                        </div>
+
                     ))
                 )}
             </div>
