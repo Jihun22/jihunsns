@@ -1,4 +1,4 @@
-// src/components/PostDetailClient.tsx
+ // src/components/PostDetailClient.tsx
 'use client'
 // 글 삭제 ,이미지 출력 컴포넌트  분리
 import { useRouter } from 'next/navigation'
@@ -24,7 +24,7 @@ export default function PostDetailClient({ post}: { post: any }) {
         setComments(data)
     }
 
-    //삭제 로직
+    //글 삭제 로직
     const handleDelete = async () => {
         if (confirm('정말 삭제하시겠습니까?')) {
             const res = await fetch(`/api/post/${post.id}`, { method: 'DELETE' })
@@ -37,6 +37,22 @@ export default function PostDetailClient({ post}: { post: any }) {
     }
     // console.log("유저아이디:", currentUserId)
     // console.log("롤:" ,currentUserRole)
+
+    //댓글 삭제 로직
+    const deleteComment = async (commentId: number) => {
+        if (!confirm('댓글 삭제하시겠습니까?')) return
+
+        const res = await fetch(`/api/comment/${commentId}`, { method: 'DELETE' })
+
+        const data = await res.json()
+
+        if(!res.ok) {
+            alert(data.error || "삭제 실패 ")
+            return
+        }
+        alert('삭제 완료')
+        fetchComments()
+    }
 
 
     return (
@@ -63,6 +79,7 @@ export default function PostDetailClient({ post}: { post: any }) {
                     ))}
                 </div>
             )}
+
             {/* 댓글 영역 */}
             <div className="mt-6 space-y-2">
                 <h2 className="text-lg font-semibold">댓글</h2>
@@ -90,22 +107,30 @@ export default function PostDetailClient({ post}: { post: any }) {
                                     <p className="text-xs text-gray-400">
                                         {new Date(comment.createdAt).toLocaleString()}
                                     </p>
-                                    {/* 본인 또는 admin만 수정 가능 */}
+
                                     {(Number(currentUserId) === comment.author.id || currentUserRole === 'admin') && (
-                                        <button
-                                            onClick={() => setEditingId(comment.id)}
-                                            className="text-blue-600 text-sm mt-1"
-                                        >
-                                            ✏️ 수정
-                                        </button>
+                                        <div className="flex gap-2 mt-1">
+                                            <button
+                                                onClick={() => setEditingId(comment.id)}
+                                                className="text-blue-600 text-sm"
+                                            >
+                                                ✏️ 수정
+                                            </button>
+                                            <button
+                                                onClick={() => deleteComment(comment.id)}
+                                                className="text-red-600 text-sm"
+                                            >
+                                                🗑 삭제
+                                            </button>
+                                        </div>
                                     )}
                                 </>
                             )}
                         </div>
-
                     ))
                 )}
             </div>
         </div>
     )
-}
+    }
+

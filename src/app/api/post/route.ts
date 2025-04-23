@@ -60,8 +60,10 @@ export async function GET() {
         include: {
             author: true,
             images: true,
+            likes: true,
         },
     })
 
     return NextResponse.json(posts)
 }
+

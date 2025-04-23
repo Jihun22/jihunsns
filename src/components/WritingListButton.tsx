@@ -6,6 +6,7 @@ import WritingList from './WritingList' // 같은 폴더 또는 경로에 따라
 export default function WritingListWrapper() {
     const [showList, setShowList] = useState(false)
 
+
     return (
         <div className="text-center">
             <button
