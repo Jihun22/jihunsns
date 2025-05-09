@@ -3,10 +3,7 @@ import path from 'path';
 import fs from 'fs/promises';
 import { prisma } from '@/lib/prisma';
 
-export async function GET(
-    request: NextRequest,
-    context: { params: Record<string, string> } // ✅ Next.js 15 공식 권장 타입
-) {
+export async function GET(request: NextRequest, context) {
     try {
         const decodedFileName = decodeURIComponent(context.params.filename);
 
