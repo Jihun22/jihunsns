@@ -3,20 +3,24 @@ import {prisma} from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 
-export async function PATCH(
-    req: NextRequest,
-    context: { params: { id: string } }
-) {
+function extractIdFromUrl(req: NextRequest): number | null {
+    const url = new URL(req.url);
+    const idStr = url.pathname.split('/').pop();
+    const id = idStr ? Number(idStr) : null;
+    return isNaN(id) ? null : id;
+}
+
+export async function PATCH(req: NextRequest) {
     const session = await getServerSession(authOptions);
 
     if (!session || !session.user?.id) {
         return NextResponse.json({ error: '인증 필요' }, { status: 401 });
     }
 
-    const id = Number(context.params.id);
+    const id = extractIdFromUrl(req);
     const { content } = await req.json();
 
-    if (!content || isNaN(id)) {
+    if (!content || id === null) {
         return NextResponse.json({ error: '유효하지 않은 요청' }, { status: 400 });
     }
 
@@ -33,11 +37,12 @@ export async function PATCH(
     }
 }
 
-export async function DELETE(
-    req: NextRequest,
-    context: { params: { id: string } }
-) {
-    const id = Number(context.params.id);
+export async function DELETE(req: NextRequest) {
+    const id = extractIdFromUrl(req);
+
+    if (id === null) {
+        return NextResponse.json({ error: '유효하지 않은 요청' }, { status: 400 });
+    }
 
     try {
         await prisma.comment.delete({
