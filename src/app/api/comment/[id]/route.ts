@@ -4,13 +4,12 @@ import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 
-// ✅ Context 타입 명시적으로 정의
-interface Context {
-    params: { id: string };
-}
-
-export async function PATCH(req: NextRequest, { params }: Context) {
+export async function PATCH(
+    req: NextRequest,
+    { params }: { params: { id: string } }
+) {
     const session = await getServerSession(authOptions);
+
     if (!session || !session.user?.id) {
         return NextResponse.json({ error: '인증 필요' }, { status: 401 });
     }
@@ -43,7 +42,7 @@ export async function DELETE(
 
     try {
         await prisma.comment.delete({
-            where: { id: parseInt(id, 10) }, // 숫자형 id 처리
+            where: { id: parseInt(id, 10) },
         });
 
         return NextResponse.json({ success: true });
