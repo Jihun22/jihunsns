@@ -4,13 +4,18 @@ import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 
-export async function PATCH(req: NextRequest, context: { params: { id: string } }) {
+// ✅ Context 타입 명시적으로 정의
+interface Context {
+    params: { id: string };
+}
+
+export async function PATCH(req: NextRequest, { params }: Context) {
     const session = await getServerSession(authOptions);
     if (!session || !session.user?.id) {
         return NextResponse.json({ error: '인증 필요' }, { status: 401 });
     }
 
-    const id = Number(context.params.id);
+    const id = Number(params.id);
     const { content } = await req.json();
 
     if (!content || isNaN(id)) {
@@ -30,17 +35,14 @@ export async function PATCH(req: NextRequest, context: { params: { id: string } 
     }
 }
 
-export async function DELETE(
-    req: NextRequest,
-    context: { params: Record<string, string> } // 💡 공식 타입 사용
-) {
+export async function DELETE(req: NextRequest, { params }: Context) {
     const session = await getServerSession(authOptions);
 
     if (!session || !session.user?.id) {
         return NextResponse.json({ error: '인증 필요' }, { status: 401 });
     }
 
-    const id = Number(context.params.id);
+    const id = Number(params.id);
 
     if (isNaN(id)) {
         return NextResponse.json({ error: '유효하지 않은 요청' }, { status: 400 });
