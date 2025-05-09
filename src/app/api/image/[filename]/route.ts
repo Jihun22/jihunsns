@@ -3,18 +3,19 @@ import path from 'path';
 import fs from 'fs/promises';
 import { prisma } from '@/lib/prisma';
 
+// ✅ 공식 권장 패턴: context 파라미터 타입 직접 명시
 export async function GET(
-    req: NextRequest,
-    context: { params: Record<string, string> } // ✅ Next.js 15 요구 사항
+    request: NextRequest,
+    { params }: { params: { filename: string } }
 ) {
     try {
-        const decodedFileName = decodeURIComponent(context.params.filename);
+        const decodedFileName = decodeURIComponent(params.filename);
 
         // 1. DB에서 이미지 레코드 조회
         const image = await prisma.image.findFirst({
             where: {
                 url: {
-                    endsWith: decodedFileName, // "/uploads/파일명"과 일치 확인
+                    endsWith: decodedFileName,
                 },
             },
         });
@@ -31,10 +32,13 @@ export async function GET(
         const fileExt = path.extname(decodedFileName).toLowerCase();
 
         const contentType =
-            fileExt === '.png' ? 'image/png' :
-                fileExt === '.jpg' || fileExt === '.jpeg' ? 'image/jpeg' :
-                    fileExt === '.webp' ? 'image/webp' :
-                        'application/octet-stream';
+            fileExt === '.png'
+                ? 'image/png'
+                : fileExt === '.jpg' || fileExt === '.jpeg'
+                    ? 'image/jpeg'
+                    : fileExt === '.webp'
+                        ? 'image/webp'
+                        : 'application/octet-stream';
 
         return new NextResponse(imageBuffer, {
             headers: {
