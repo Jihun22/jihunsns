@@ -1,12 +1,11 @@
-// src/app/api/comment/[id]/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import {prisma} from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 
 export async function PATCH(
     req: NextRequest,
-    { params }: { params: { id: string } }
+    context: { params: { id: string } }
 ) {
     const session = await getServerSession(authOptions);
 
@@ -14,7 +13,7 @@ export async function PATCH(
         return NextResponse.json({ error: '인증 필요' }, { status: 401 });
     }
 
-    const id = Number(params.id);
+    const id = Number(context.params.id);
     const { content } = await req.json();
 
     if (!content || isNaN(id)) {
@@ -35,19 +34,19 @@ export async function PATCH(
 }
 
 export async function DELETE(
-    request: NextRequest,
-    { params }: { params: { id: string } }
+    req: NextRequest,
+    context: { params: { id: string } }
 ) {
-    const { id } = params;
+    const id = Number(context.params.id);
 
     try {
         await prisma.comment.delete({
-            where: { id: parseInt(id, 10) },
+            where: { id },
         });
 
         return NextResponse.json({ success: true });
     } catch (error) {
-        console.error('Error deleting comment:', error);
+        console.error('[댓글 삭제 오류]', error);
         return NextResponse.json(
             { success: false, error: 'Failed to delete comment' },
             { status: 500 }
