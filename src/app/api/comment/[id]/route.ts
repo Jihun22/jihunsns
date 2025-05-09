@@ -35,35 +35,23 @@ export async function PATCH(req: NextRequest, { params }: Context) {
     }
 }
 
-export async function DELETE(req: NextRequest, { params }: Context) {
-    const session = await getServerSession(authOptions);
-
-    if (!session || !session.user?.id) {
-        return NextResponse.json({ error: '인증 필요' }, { status: 401 });
-    }
-
-    const id = Number(params.id);
-
-    if (isNaN(id)) {
-        return NextResponse.json({ error: '유효하지 않은 요청' }, { status: 400 });
-    }
+export async function DELETE(
+    request: NextRequest,
+    { params }: { params: { id: string } }
+) {
+    const { id } = params;
 
     try {
-        const comment = await prisma.comment.findUnique({ where: { id } });
+        await prisma.comment.delete({
+            where: { id: parseInt(id, 10) }, // 숫자형 id 처리
+        });
 
-        if (!comment) {
-            return NextResponse.json({ error: '댓글을 찾을 수 없습니다.' }, { status: 404 });
-        }
-
-        if (comment.authorId !== Number(session.user.id)) {
-            return NextResponse.json({ error: '삭제 권한이 없습니다.' }, { status: 403 });
-        }
-
-        await prisma.comment.delete({ where: { id } });
-
-        return NextResponse.json({ message: '댓글 삭제 완료' });
+        return NextResponse.json({ success: true });
     } catch (error) {
-        console.error('[댓글 삭제 오류]:', error);
-        return NextResponse.json({ error: '서버 오류' }, { status: 500 });
+        console.error('Error deleting comment:', error);
+        return NextResponse.json(
+            { success: false, error: 'Failed to delete comment' },
+            { status: 500 }
+        );
     }
 }
