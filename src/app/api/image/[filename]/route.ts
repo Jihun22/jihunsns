@@ -3,13 +3,12 @@ import path from 'path';
 import fs from 'fs/promises';
 import { prisma } from '@/lib/prisma';
 
-// ✅ 공식 권장 패턴: context 파라미터 타입 직접 명시
 export async function GET(
     request: NextRequest,
-    { params }: { params: { filename: string } }
+    context: { params: Record<string, string> } // ✅ Next.js 15 공식 권장 타입
 ) {
     try {
-        const decodedFileName = decodeURIComponent(params.filename);
+        const decodedFileName = decodeURIComponent(context.params.filename);
 
         // 1. DB에서 이미지 레코드 조회
         const image = await prisma.image.findFirst({
