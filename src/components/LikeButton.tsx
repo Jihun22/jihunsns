@@ -1,7 +1,7 @@
 import {useState} from "react";
 
 interface LikeButtonProps {
-    postId: string;
+    postId: string | number;
     initialLiked: boolean;
     initialCount: number;
 }

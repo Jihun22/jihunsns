@@ -1,42 +1,36 @@
 'use client'
-import {useState} from 'react'
-import {useRouter} from 'next/navigation'
+import { useState } from 'react';
+import { useRouter } from 'next/navigation'; // ✅ 사용함
 
-export default function CommentForm({postId, onSuccess,}: {
-    postId: number
-    onSuccess?: () => void
-}) {
-    const [content, setContent] = useState('')
-    const [isLoading, setIsLoading] = useState(false)
-    const router = useRouter()
+export default function CommentForm({ postId, onSuccess }: { postId: number; onSuccess?: () => void }) {
+    const [content, setContent] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    const router = useRouter(); // ✅ 사용
 
     const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault()
-        if (!content.trim()) return
+        e.preventDefault();
+        if (!content.trim()) return;
 
-        setIsLoading(true)
+        setIsLoading(true);
         try {
             const res = await fetch(`/api/comment`, {
                 method: 'POST',
-                body: JSON.stringify({content,postId}),
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            })
+                body: JSON.stringify({ content, postId }),
+                headers: { 'Content-Type': 'application/json' },
+            });
 
-            if (!res.ok) {
-                throw new Error('댓글 작성 실패')
-            }
+            if (!res.ok) throw new Error('댓글 작성 실패');
 
-            setContent('')
-            onSuccess?.()
+            setContent('');
+            onSuccess?.();
+            router.refresh(); // ✅ 페이지 새로고침 (SSR 데이터 다시 불러오기)
         } catch (error) {
-            console.error(error)
-            alert('댓글 작성에 실패했습니다.')
+            console.error(error);
+            alert('댓글 작성에 실패했습니다.');
         } finally {
-            setIsLoading(false)
+            setIsLoading(false);
         }
-    }
+    };
 
     return (
         <form onSubmit={handleSubmit} className="mt-4">
@@ -55,5 +49,5 @@ export default function CommentForm({postId, onSuccess,}: {
                 {isLoading ? '작성 중...' : '댓글 작성'}
             </button>
         </form>
-    )
+    );
 }

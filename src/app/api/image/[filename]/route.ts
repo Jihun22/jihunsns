@@ -3,9 +3,12 @@ import path from 'path';
 import fs from 'fs/promises';
 import { prisma } from '@/lib/prisma';
 
-export async function GET(request: NextRequest, context) {
+// @ts-expect-error nextjs타입시스템 충돌방지
+export async function GET(req: NextRequest, context) {
+    const { filename } = context.params;
+
     try {
-        const decodedFileName = decodeURIComponent(context.params.filename);
+        const decodedFileName = decodeURIComponent(filename);
 
         // 1. DB에서 이미지 레코드 조회
         const image = await prisma.image.findFirst({

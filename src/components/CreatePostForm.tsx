@@ -13,6 +13,10 @@ export default function CreatePostForm() {
     const [images, setImages] = useState<File[]>([])
     const [message, setMessage] = useState('')
 
+    const [loading, setLoading] = useState(false); // ✅ 수정
+
+
+
     //✅이미지 파일 선언
     const handleImageChange = (e:React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
@@ -21,31 +25,46 @@ export default function CreatePostForm() {
     }
 
     const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault()
+        e.preventDefault();
+        setLoading(true);
+        setMessage('');
 
-        const formData = new FormData()
-        formData.append('content',content)
-        images.forEach((img) => formData.append('image',img))
+        const formData = new FormData();
+        formData.append('content', content);
+        images.forEach((img) => formData.append('image', img));
 
-        // const res = await fetch('/api/post', {
-        //     method: 'POST',
-        //     headers: { 'Content-Type': 'application/json' },
-        //     body: JSON.stringify({ content }),
-        const res = await fetch('/api/post',{
-            method: 'POST',
-            body : formData,
-        })
+        try {
+            const res = await fetch('/api/post', {
+                method: 'POST',
+                body: formData,
+            });
 
-        const  result = await res.json()
-        if (res.ok) {
-            setMessage('게시글이 등록되었습니다.!')
-            setContent('')
-            setImages([])
-            router.push('/')
-        }else {
-            setMessage(result.error || '등록 실패')
+            interface ResultType {
+                error?: string;
+            }
+            let result: ResultType = {};
+            try {
+                result = await res.json();
+            } catch {
+                result = { error: '응답 파싱 오류' };
+            }
+
+            if (res.ok) {
+                alert('게시글이 등록되었습니다!');
+                setContent('');
+                setImages([]);
+                router.push('/');
+            } else {
+                setMessage(result.error || '등록 실패');
+            }
+        } catch (error) {
+            console.error('등록 중 오류:', error);
+            setMessage('요청 실패');
+        } finally {
+            setLoading(false);
         }
-    }
+    };
+
 
     return (
         <form onSubmit={handleSubmit} className="space-y-2">
@@ -74,7 +93,13 @@ export default function CreatePostForm() {
                     ))}
                 </div>
             )}
-            <button className="bg-blue-500 text-white px-4 py-2 rounded">게시글 등록</button>
+            <button
+                type="submit"
+                className="bg-blue-500 text-white px-4 py-2 rounded disabled:opacity-50"
+                disabled={loading}
+            >
+                {loading ? '등록 중...' : '게시글 등록'}
+            </button>
             {message && <p className="text-green-600"> {message} </p> }
         </form>
     )

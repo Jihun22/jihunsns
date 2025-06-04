@@ -3,7 +3,6 @@
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { signIn } from 'next-auth/react'
-import LogoutButton from "@/components/LogoutButton";
 import SignupButton from "@/components/SignupButton";
 
 export  default function  LoginPage() {

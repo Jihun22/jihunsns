@@ -1,16 +1,18 @@
 // src/app/api/comment/route.ts
+//댓글 생성 +조회
 import { getServerSession } from 'next-auth';
 import { NextRequest, NextResponse } from 'next/server';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
+// 댓글 생성
 export async function POST(req: NextRequest) {
     const session = await getServerSession(authOptions);
     if (!session || !session.user?.id) {
         return NextResponse.json({ error: '로그인이 필요합니다.' }, { status: 401 });
     }
 
-    const { content, postId } = await req.json();
+    const { content, postId }: { content: string; postId: string | number } = await req.json();
 
     if (!content || !postId) {
         return NextResponse.json({ error: '내용과 게시글 ID가 필요합니다.' }, { status: 400 });
@@ -33,6 +35,7 @@ export async function POST(req: NextRequest) {
     }
 }
 
+// 댓글 조회
 export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const postId = Number(searchParams.get('postId'));

@@ -1,13 +1,10 @@
 //글 수정
 import {prisma} from "@/lib/prisma"
-import {notFound, redirect} from "next/navigation"
+import {notFound} from "next/navigation"
 import EditPostForm from "@/components/EditPostForm"
 
-interface Props {
-    params :{id : string}
-}
-
-export default async function EditPage({ params} : Props) {
+// @ts-expect-error nextjs타입시스템 충돌방지
+export default async function EditPage({params}) {
     const id = Number(params.id)
     if (isNaN(id)) return notFound()
 

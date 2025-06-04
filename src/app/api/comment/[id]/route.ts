@@ -1,60 +1,36 @@
 import { NextRequest, NextResponse } from 'next/server';
-import {prisma} from '@/lib/prisma';
-import { getServerSession } from 'next-auth';
+import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
 
-function extractIdFromUrl(req: NextRequest): number | null {
-    const url = new URL(req.url);
-    const idStr = url.pathname.split('/').pop();
-    const id = idStr ? Number(idStr) : null;
-    return isNaN(id) ? null : id;
-}
-
-export async function PATCH(req: NextRequest) {
+// 댓글 수정
+// @ts-expect-error nextjs타입시스템 충돌방지
+export async function PATCH(req: NextRequest, context) {
     const session = await getServerSession(authOptions);
-
     if (!session || !session.user?.id) {
         return NextResponse.json({ error: '인증 필요' }, { status: 401 });
     }
 
-    const id = extractIdFromUrl(req);
-    const { content } = await req.json();
+    const id = parseInt(context.params.id, 10);
+    const { content }: { content: string } = await req.json();
 
-    if (!content || id === null) {
+    if (!content || isNaN(id)) {
         return NextResponse.json({ error: '유효하지 않은 요청' }, { status: 400 });
     }
 
-    try {
-        const updated = await prisma.comment.update({
-            where: { id },
-            data: { content },
-        });
+    const comment = await prisma.comment.findUnique({
+        where: { id },
+        select: { authorId: true },
+    });
 
-        return NextResponse.json(updated);
-    } catch (error) {
-        console.error('[댓글 수정 오류]', error);
-        return NextResponse.json({ error: '서버 오류' }, { status: 500 });
-    }
-}
-
-export async function DELETE(req: NextRequest) {
-    const id = extractIdFromUrl(req);
-
-    if (id === null) {
-        return NextResponse.json({ error: '유효하지 않은 요청' }, { status: 400 });
+    if (!comment || comment.authorId !== parseInt(session.user.id, 10)) {
+        return NextResponse.json({ error: '권한이 없습니다.' }, { status: 403 });
     }
 
-    try {
-        await prisma.comment.delete({
-            where: { id },
-        });
+    const updated = await prisma.comment.update({
+        where: { id },
+        data: { content },
+    });
 
-        return NextResponse.json({ success: true });
-    } catch (error) {
-        console.error('[댓글 삭제 오류]', error);
-        return NextResponse.json(
-            { success: false, error: 'Failed to delete comment' },
-            { status: 500 }
-        );
-    }
+    return NextResponse.json(updated);
 }
