@@ -1,36 +1,78 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🖼️ JihunSNS
 
-## Getting Started
+**JihunSNS**는 이미지 업로드, 사용자 인증, 닉네임 중복 확인 기능 등을 포함한 소셜 기반의 미니 SNS 프로젝트입니다.  
+Next.js 15과 Prisma, PostgreSQL(Docker 기반)을 활용해 백엔드를 구성하였으며, 간단한 구조로 쉽게 확장 가능한 구조를 갖추고 있습니다.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## 🚀 기술 스택
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+| 구분 | 기술 |
+|------|------|
+| 프론트엔드 | Next.js 15 (App Router), TypeScript, Tailwind CSS |
+| 백엔드 | Next.js API Route, Prisma ORM |
+| DB | PostgreSQL (Docker Compose 기반) |
+| 인증 | Credentials 기반 로그인 |
+| 기타 | Docker, Prisma Studio, RESTful API |
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 📸 주요 기능
 
-## Learn More
+- [x] 사용자 회원가입 & 로그인
+- [x] 닉네임 중복 검사 (`/api/user/check-nickname`)
+- [x] 게시글 작성 (텍스트 + 이미지 업로드)
+- [x] 이미지 업로드 (정적 디렉토리 `/public/uploads`)
+- [x] 게시글 목록 / 상세 조회
+- [x] Docker 기반 PostgreSQL 연동
+- [x] Prisma Studio 데이터 관리 (`npx prisma studio`)
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 📂 프로젝트 구조
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+jihunsns/                                                           
+├── app/                      # App Router 기반 페이지
+│   └── page.tsx                                       
+├── pages/api/               # API 라우트 (REST API)                    
+│   └── user/                          
+│       └── check-nickname.ts                             
+├── prisma/                  # Prisma 스키마 및 마이그레이션                     
+│   └── schema.prisma                              
+├── public/uploads/          # 이미지 저장 경로                           
+├── lib/                    
+│   └── prisma.ts             # Prisma Client 인스턴스                      
+├── docker-compose.yml       # DB 실행용 설정                       
+└── .env                     # 환경 변수 설정               
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## ⚙️ 설치 및 실행
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. **레포지토리 클론**
+   ```bash
+   git clone https://github.com/Jihun22/jihunsns.git
+   cd jihunsns
+
+2. 환경변수 설정 
+    ```bash
+
+    cp .env.example .env
+    # .env 파일에 DATABASE_URL 등 직접 입력        
+
+3. Docker로 postgreSql실행
+   ```bash
+    docker-compose up -d
+   
+4. 의존성 설치 후 서버 실행 
+   ```bash
+   npm install
+    npm run dev
+   
+5. Prisma 마이그레이션
+ ```bash
+  npx prisma migrate dev
+  
+ 
+ 6.Prisma Studio(DB관리 UI)
+  npx prisma studio
