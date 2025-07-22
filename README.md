@@ -7,13 +7,13 @@ Next.js 15과 Prisma, PostgreSQL(Docker 기반)을 활용해 백엔드를 구성
 
 ## 🚀 기술 스택
 
-| 구분 | 기술 |
-|------|------|
+| 구분       | 기술                                              |
+| ---------- | ------------------------------------------------- |
 | 프론트엔드 | Next.js 15 (App Router), TypeScript, Tailwind CSS |
-| 백엔드 | Next.js API Route, Prisma ORM |
-| DB | PostgreSQL (Docker Compose 기반) |
-| 인증 | Credentials 기반 로그인 |
-| 기타 | Docker, Prisma Studio, RESTful API |
+| 백엔드     | Next.js API Route, Prisma ORM                     |
+| DB         | PostgreSQL (Docker Compose 기반)                  |
+| 인증       | Credentials 기반 로그인                           |
+| 기타       | Docker, Prisma Studio, RESTful API                |
 
 ---
 
@@ -31,48 +31,58 @@ Next.js 15과 Prisma, PostgreSQL(Docker 기반)을 활용해 백엔드를 구성
 
 ## 📂 프로젝트 구조
 
-jihunsns/                                                           
-├── app/                      # App Router 기반 페이지
-│   └── page.tsx                                       
-├── pages/api/               # API 라우트 (REST API)                    
-│   └── user/                          
-│       └── check-nickname.ts                             
-├── prisma/                  # Prisma 스키마 및 마이그레이션                     
-│   └── schema.prisma                              
-├── public/uploads/          # 이미지 저장 경로                           
-├── lib/                    
-│   └── prisma.ts             # Prisma Client 인스턴스                      
-├── docker-compose.yml       # DB 실행용 설정                       
-└── .env                     # 환경 변수 설정               
+jihunsns/  
+├── app/ # App Router 기반 페이지
+│ └── page.tsx  
+├── pages/api/ # API 라우트 (REST API)  
+│ └── user/  
+│ └── check-nickname.ts  
+├── prisma/ # Prisma 스키마 및 마이그레이션  
+│ └── schema.prisma  
+├── public/uploads/ # 이미지 저장 경로  
+├── lib/  
+│ └── prisma.ts # Prisma Client 인스턴스  
+├── docker-compose.yml # DB 실행용 설정  
+└── .env # 환경 변수 설정
 
 ---
 
 ## ⚙️ 설치 및 실행
 
 1. **레포지토리 클론**
+
    ```bash
    git clone https://github.com/Jihun22/jihunsns.git
    cd jihunsns
 
-2. 환경변수 설정 
-    ```bash
+   ```
 
-    cp .env.example .env
-    # .env 파일에 DATABASE_URL 등 직접 입력        
+2. 환경변수 설정
+
+   ```bash
+
+   cp .env.example .env
+   # .env 파일에 DATABASE_URL 등 직접 입력
+
+   ```
 
 3. Docker로 postgreSql실행
    ```bash
     docker-compose up -d
-   
-4. 의존성 설치 후 서버 실행 
+
+   ```
+4. 의존성 설치 후 서버 실행
    ```bash
    npm install
     npm run dev
-   
+
+   ```
 5. Prisma 마이그레이션
- ```bash
-  npx prisma migrate dev
-  
- 
- 6.Prisma Studio(DB관리 UI)
-  npx prisma studio
+
+```bash
+ npx prisma migrate dev
+
+
+6.Prisma Studio(DB관리 UI)
+ npx prisma studio
+```

@@ -1,6 +1,5 @@
-import { prisma } from '@/lib/prisma'
+import { prisma } from "@/lib/prisma";
 
 export async function getUsers() {
-    return await prisma.user.findMany()
+  return await prisma.user.findMany();
 }
-
