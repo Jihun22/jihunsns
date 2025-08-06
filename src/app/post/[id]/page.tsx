@@ -4,14 +4,14 @@ import { notFound } from "next/navigation";
 import BackButton from "@/components/BackButton";
 import PostDetailClient from "@/components/PostDetailClient";
 
-// @ts-expect-error nextjs타입시스템 충돌방지
-export default async function PostDetailPage({ params }) {
-  const id = Number(params.id);
-  if (isNaN(id)) return notFound();
+export default async function PostDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const numericId = Number(id);
+  if (isNaN(numericId)) return notFound();
 
   const post = await prisma.post
     .findUnique({
-      where: { id },
+      where: { id: numericId },
       include: {
         author: true,
         images: true,

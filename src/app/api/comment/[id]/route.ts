@@ -4,22 +4,25 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 // 댓글 수정
-// @ts-expect-error nextjs타입시스템 충돌방지
-export async function PATCH(req: NextRequest, context) {
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   const session = await getServerSession(authOptions);
   if (!session || !session.user?.id) {
     return NextResponse.json({ error: "인증 필요" }, { status: 401 });
   }
 
-  const id = parseInt(context.params.id, 10);
+  const { id } = await params;
+  const parsedId = parseInt(id, 10);
   const { content }: { content: string } = await req.json();
 
-  if (!content || isNaN(id)) {
+  if (!content || isNaN(parsedId)) {
     return NextResponse.json({ error: "유효하지 않은 요청" }, { status: 400 });
   }
 
   const comment = await prisma.comment.findUnique({
-    where: { id },
+    where: { id: parsedId },
     select: { authorId: true },
   });
 
@@ -28,7 +31,7 @@ export async function PATCH(req: NextRequest, context) {
   }
 
   const updated = await prisma.comment.update({
-    where: { id },
+    where: { id: parsedId },
     data: { content },
   });
 

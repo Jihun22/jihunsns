@@ -31,7 +31,7 @@ model Post {
   comments  Comment[]
   likes     Like[]
   createdAt DateTime  @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime  @updatedAt
 }
 
 model Comment {
@@ -45,28 +45,32 @@ model Comment {
 }
 
 model Like {
-  id      Int    @id @default(autoincrement())
-  user    User   @relation(fields: [userId], references: [id])
-  userId  Int
-  post    Post   @relation(fields: [postId], references: [id])
-  postId  Int
+  id     Int  @id @default(autoincrement())
+  user   User @relation(fields: [userId], references: [id])
+  userId Int
+  post   Post @relation(fields: [postId], references: [id])
+  postId Int
 
   @@unique([userId, postId])
 }
 
 model Follow {
-  id         Int   @id @default(autoincrement())
-  follower   User  @relation("Following", fields: [followerId], references: [id])
-  followerId Int
-  following  User  @relation("Followers", fields: [followingId], references: [id])
+  id          Int  @id @default(autoincrement())
+  follower    User @relation("Following", fields: [followerId], references: [id])
+  followerId  Int
+  following   User @relation("Followers", fields: [followingId], references: [id])
   followingId Int
 
   @@unique([followerId, followingId])
 }
 
 model Image {
-  id      Int    @id @default(autoincrement())
-  url     String
-  post    Post   @relation(fields: [postId], references: [id])
-  postId  Int
+  id        Int      @id @default(autoincrement())
+  url       String
+  post      Post     @relation(fields: [postId], references: [id])
+  postId    Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  data      Bytes
+  mimeType  String
 }

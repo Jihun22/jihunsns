@@ -2,8 +2,6 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import fs, { writeFile } from "fs/promises";
-import path from "path";
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
@@ -31,22 +29,14 @@ export async function POST(req: Request) {
   // 이미지가 있다면 처리
   for (const image of images) {
     const buffer = Buffer.from(await image.arrayBuffer());
-    const fileName = encodeURIComponent(image.name);
-
-    const uploadDir = path.join(process.cwd(), "public", "uploads"); // ✅ 절대 경로 지정
-    const uploadPath = path.join(uploadDir, fileName);
-
-    // 디렉토리 먼저 생성 (없으면 에러)
-    await fs.mkdir(uploadDir, { recursive: true });
-
-    // 파일 저장
-    await writeFile(uploadPath, buffer);
 
     // DB 저장
-    await prisma.image.create({
+      await prisma.image.create({
       data: {
-        url: `/uploads/${fileName}`, // 프론트엔드에서 접근 가능한 경로
+        url: image.name,
         postId: newPost.id,
+          data: buffer,
+          mimeType: image.type || "application/octet-stream",
       },
     });
   }
