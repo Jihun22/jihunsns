@@ -5,7 +5,7 @@ import { signOut } from "next-auth/react";
 export default function SignupButton() {
   return (
     <button
-      onClick={() => signOut({ callbackUrl: "/signup" })}
+      onClick={() => signOut({ callbackUrl: "http://localhost:8080/api/auth/signup" })}
       className="bg-blue-500 text-white px-4 py-2  rounded mt-4 ml-2 transition"
     >
       회원가입

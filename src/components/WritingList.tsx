@@ -36,7 +36,7 @@ export default function WritingList() {
 
   useEffect(() => {
     if (session?.user) {
-      fetch("/api/post")
+      fetch("http://localhost:8080/api/posts")
         .then(res => res.json())
         .then((data: PostInfo[]) => setPosts(data));
     }

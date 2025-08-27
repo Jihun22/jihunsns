@@ -18,7 +18,7 @@ export default function ProfilePageClient() {
   }, [session]);
 
   const checkNicknameDuplicate = async (nickname: string) => {
-    const res = await fetch("/api/user/check-nickname", {
+    const res = await fetch("http://localhost:8080/api/user/check-nickname", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ nickname }),

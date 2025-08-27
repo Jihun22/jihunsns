@@ -12,7 +12,7 @@ export default function SignupPage() {
   };
 
   const checkDuplicate = async (email: string, nickname: string) => {
-    const res = await fetch("/api/user/check-nickname", {
+    const res = await fetch("http://localhost:8080/api/user/check-nickname", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, nickname }),
@@ -38,7 +38,7 @@ export default function SignupPage() {
         return;
       }
 
-      const res = await fetch("/api/auth/signup", {
+      const res = await fetch("http://localhost:8080/api/auth/signup", {
         method: "POST",
         body: JSON.stringify(form),
         headers: { "Content-Type": "application/json" },

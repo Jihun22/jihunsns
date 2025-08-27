@@ -41,7 +41,7 @@ export default function PostDetailClient({ post }: { post: PostInfo }) {
 
   // ✅ 댓글 새로고침
   const fetchComments = async () => {
-    const res = await fetch(`/api/comment?postId=${post.id}`);
+    const res = await fetch(`http://localhost:8080/api/comment?postId=${post.id}`);
     const data: CommentInfo[] = await res.json();
     setComments(data);
   };
@@ -49,7 +49,7 @@ export default function PostDetailClient({ post }: { post: PostInfo }) {
   // ✅ 게시글 삭제
   const handleDelete = async () => {
     if (confirm("정말 삭제하시겠습니까?")) {
-      const res = await fetch(`/api/post/${post.id}`, { method: "DELETE" });
+      const res = await fetch(`http://localhost:8080/api/post/${post.id}`, { method: "DELETE" });
       if (res.ok) {
         router.push("/");
         router.refresh(); // 페이지 새로고침 (Next.js 13 이상)
@@ -63,7 +63,7 @@ export default function PostDetailClient({ post }: { post: PostInfo }) {
   const deleteComment = async (commentId: number) => {
     if (!confirm("댓글 삭제하시겠습니까?")) return;
 
-    const res = await fetch(`/api/comment/${commentId}`, { method: "DELETE" });
+    const res = await fetch(`http://localhost:8080/api/comment/${commentId}`, { method: "DELETE" });
     const data = await res.json();
 
     if (!res.ok) {
@@ -84,7 +84,7 @@ export default function PostDetailClient({ post }: { post: PostInfo }) {
         <button onClick={handleDelete} className="text-red-600">
           🗑 삭제
         </button>
-        <button onClick={() => router.push(`/post/${post.id}/edit`)} className="text-blue-600">
+        <button onClick={() => router.push(`http://localhost:8080/post/${post.id}/edit`)} className="text-blue-600">
           ✏️ 수정
         </button>
       </div>

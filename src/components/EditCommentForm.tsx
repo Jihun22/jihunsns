@@ -19,7 +19,7 @@ export default function EditCommentForm({
     e.preventDefault();
     setLoading(true);
 
-    const res = await fetch(`/api/comment/${commentId}`, {
+    const res = await fetch(`http://localhost:8080/api/comment/${commentId}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",

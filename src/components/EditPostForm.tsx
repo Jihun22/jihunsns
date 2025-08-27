@@ -17,7 +17,7 @@ export default function EditPostForm({ postId }: Props) {
 
   useEffect(() => {
     const fetchPost = async () => {
-      const res = await fetch(`/api/post/${postId}`);
+      const res = await fetch(`http://localhost:8080/api/post/${postId}`);
       if (!res.ok) return;
       const data = await res.json();
       setContent(data.content);

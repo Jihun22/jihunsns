@@ -11,7 +11,7 @@ export default function LikeButton({ postId, initialLiked, initialCount }: LikeB
   const [count, setCount] = useState(initialCount);
 
   const toggleLike = async () => {
-    const res = await fetch("/api/like", {
+    const res = await fetch("http://localhost:8080/api/like", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ postId }),

@@ -32,7 +32,7 @@ export default function CreatePostForm() {
     images.forEach(img => formData.append("image", img));
 
     try {
-      const res = await fetch("/api/post", {
+      const res = await fetch("http://localhost:8080/api/post", {
         method: "POST",
         body: formData,
       });
