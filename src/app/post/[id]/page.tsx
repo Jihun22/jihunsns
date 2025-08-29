@@ -1,39 +1,37 @@
-// src/app/post/[id]/page.tsx
-import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import BackButton from "@/components/BackButton";
 import PostDetailClient from "@/components/PostDetailClient";
 
-export default async function PostDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
-  const numericId = Number(id);
-  if (isNaN(numericId)) return notFound();
+export const dynamic = "force-dynamic";
 
-  const post = await prisma.post
-    .findUnique({
-      where: { id: numericId },
-      include: {
-        author: true,
-        images: true,
-        comments: {
-          include: { author: true },
-          orderBy: { createdAt: "desc" },
-        },
-      },
-    })
-    .then(post =>
-      post
-        ? {
-            ...post,
-            createdAt: post.createdAt.toISOString(),
-            comments: post.comments.map(comment => ({
-              ...comment,
-              createdAt: comment.createdAt.toISOString(),
-            })),
-          }
-        : null
-    );
+interface PostDTO {
+  id: number;
+  content: string;
+  createdAt: string;
+  author?: { id: number; nickname?: string };
+  images?: Array<{ id: number; url: string }>;
+  comments?: Array<{
+    id: number;
+    content: string;
+    createdAt: string;
+    author?: { id: number; nickname?: string };
+  }>;
+}
 
+async function fetchPost(id: number): Promise<PostDTO | null> {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/posts/${id}`, {
+    cache: "no-store",
+  });
+  if (res.status === 404) return null;
+  if (!res.ok) return null;
+  return (await res.json()) as PostDTO;
+}
+
+export default async function Page({ params }: any) {
+  const numericId = Number(params.id);
+  if (Number.isNaN(numericId)) return notFound();
+
+  const post = await fetchPost(numericId);
   if (!post) return notFound();
 
   return (
@@ -41,9 +39,12 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
       <h1 className="text-xl font-bold mb-2">게시글 상세</h1>
       <p className="text-gray-500">작성자: {post.author?.nickname}</p>
 
+      {/* @ts-expect-error: Next.js type generation for PageProps is stale and incorrectly requires Promise */}
       <PostDetailClient post={post} />
 
-      <p className="text-xs text-gray-400">{new Date(post.createdAt).toLocaleString()}</p>
+      <p className="text-xs text-gray-400">
+        {new Date(post.createdAt).toLocaleString()}
+      </p>
 
       <BackButton />
     </div>

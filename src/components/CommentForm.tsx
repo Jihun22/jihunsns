@@ -19,7 +19,7 @@ export default function CommentForm({
 
     setIsLoading(true);
     try {
-      const res = await fetch(`http://localhost:8080/api/comment`, {
+      const res = await fetch(`/api/comment`, {
         method: "POST",
         body: JSON.stringify({ content, postId }),
         headers: { "Content-Type": "application/json" },

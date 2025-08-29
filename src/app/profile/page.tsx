@@ -1,14 +1,18 @@
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+// src/app/profile/page.tsx
 import { redirect } from "next/navigation";
-import ProfilePageClient from "./ProfilePageClient"; // ✅ 클라이언트 컴포넌트 import
+import { cookies } from "next/headers";
+import type { AppUser } from "@/types/auth";
+import ProfilePageClient from "@/components/ProfilePageClient";
 
-export default async function ProfilePage() {
-  const session = await getServerSession(authOptions);
+export default async function Page() {
+    const cookie = cookies().toString();
+    const res = await fetch(`${process.env.BACKEND_URL}/api/me`, {
+        headers: { cookie },
+        cache: "no-store",
+    });
 
-  if (!session) {
-    redirect("/login");
-  }
+    if (!res.ok) redirect("/login");
+    const user = (await res.json()) as AppUser;
 
-  return <ProfilePageClient />; // ✅ 클라이언트 컴포넌트 렌더링
+    return <ProfilePageClient user={user} />;
 }

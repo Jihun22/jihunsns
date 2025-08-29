@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { signIn } from "next-auth/react";
 import SignupButton from "@/components/SignupButton";
 
 export default function LoginPage() {
@@ -16,17 +15,28 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const res = await signIn("credentials", {
-      redirect: false,
-      email: form.email,
-      password: form.password,
-    });
-
-    if (res?.ok) {
-      setMessage("로그인 성공!");
-      router.push("/");
-    } else {
-      setMessage("로그인 실패");
+    setMessage("");
+    try {
+      const res = await fetch("http://localhost:8080/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          email: form.email,
+          password: form.password,
+        }),
+      });
+      if (res.ok) {
+        setMessage("로그인 성공!");
+        router.push("/");
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setMessage(data?.message || "로그인 실패");
+      }
+    } catch (err) {
+      setMessage("로그인 중 오류가 발생했습니다.");
     }
   };
 

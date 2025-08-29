@@ -1,27 +1,16 @@
 "use client";
 
-import { useSession } from "next-auth/react";
+import type { AppUser } from "@/types/auth";
 import LogoutButton from "@/components/LogoutButton";
 import ProfileButton from "@/components/ProfileButton";
-import { useEffect, useRef } from "react";
-import LoginPage from "@/app/login/page";
 import Link from "next/link";
 import WritingListButton from "@/components/WritingListButton";
 import AdminButton from "@/components/AdminButton";
+import LoginPage from "@/app/login/page";
 
-export default function HomeClient() {
-  const { data: session, status, update } = useSession();
-  const refreshed = useRef(false); // 무한루프 방지
-
-  useEffect(() => {
-    if (!refreshed.current) {
-      refreshed.current = true;
-      update(); // 한번만 실행
-    }
-  }, [status, update]);
-
-  if (status === "loading") return <p>세션 로딩중 ..</p>;
-  if (!session?.user) return <LoginPage />;
+export default function HomeClient({ user }: { user: AppUser | null }) {
+  // NextAuth 제거: 세션 대신 서버에서 주입된 사용자 정보(AppUser)를 사용
+  if (!user) return <LoginPage />;
 
   return (
     <div className="min-h-screen p-4">
@@ -39,7 +28,7 @@ export default function HomeClient() {
       {/* 중앙 영역 */}
       <div className="flex flex-col items-center justify-center space-y-4 text-center">
         <p className="text-lg font-semibold">
-          {session.user.name}님 환영합니다! (ID: {session.user.id})
+          {(user.nickname ?? user.email ?? "사용자")}님 환영합니다! (ID: {user.id})
         </p>
         <ProfileButton />
       </div>

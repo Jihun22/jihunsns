@@ -1,10 +1,10 @@
 "use client";
 
-import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import LikeButton from "@/components/LikeButton";
+import type { AppUser } from "@/types/auth";
 
 // ✅ 타입 정의
 interface ImageInfo {
@@ -31,16 +31,31 @@ interface PostInfo {
 }
 
 export default function WritingList() {
-  const { data: session } = useSession();
+  const [me, setMe] = useState<AppUser | null>(null);
   const [posts, setPosts] = useState<PostInfo[]>([]);
 
   useEffect(() => {
-    if (session?.user) {
-      fetch("http://localhost:8080/api/posts")
-        .then(res => res.json())
-        .then((data: PostInfo[]) => setPosts(data));
-    }
-  }, [session]);
+    let mounted = true;
+    (async () => {
+      try {
+        // 현재 로그인 유저
+        const meRes = await fetch("/api/me", { credentials: "include", cache: "no-store" });
+        const meData = meRes.ok ? ((await meRes.json()) as AppUser) : null;
+        if (mounted) setMe(meData);
+
+        // 게시글 목록
+        const res = await fetch("/api/posts", { credentials: "include", cache: "no-store" });
+        if (!res.ok) return;
+        const data = (await res.json()) as PostInfo[];
+        if (mounted) setPosts(data);
+      } catch {
+        // 생략: 에러 처리 필요 시 추가
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   return (
     <div className="mt-6 space-y-4">
@@ -74,11 +89,7 @@ export default function WritingList() {
           <div className="mt-2">
             <LikeButton
               postId={String(post.id)}
-              initialLiked={
-                !!post.likes?.some(
-                  like => like.userId === Number(session?.user?.id) // 문자열 대비 숫자 변환 처리
-                )
-              }
+              initialLiked={!!(me && post.likes?.some(like => like.userId === Number(me.id)))}
               initialCount={post.likes?.length || 0}
             />
           </div>

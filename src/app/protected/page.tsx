@@ -1,22 +1,39 @@
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+// src/app/admin/page.tsx
 import { redirect } from "next/navigation";
+import type { AppUser } from "@/types/auth";
+import { headers, cookies } from "next/headers";
+
+// ✅ 현재 로그인 유저 가져오기
+async function getCurrentUser(): Promise<AppUser | null> {
+    try {
+        const res = await fetch(`${process.env.BACKEND_URL ?? "http://localhost:8080"}/api/auth/me`, {
+            headers: {
+                cookie: cookies().toString(),
+            },
+            cache: "no-store",
+        });
+        if (!res.ok) return null;
+        return (await res.json()) as AppUser;
+    } catch {
+        return null;
+    }
+}
 
 export default async function AdminPage() {
-  const session = await getServerSession(authOptions);
+    const user = await getCurrentUser();
 
-  if (!session) {
-    redirect("/login"); // 로그인 안 했으면 로그인 페이지로
-  }
+    if (!user) {
+        redirect("/login"); // 로그인 안 했으면 로그인 페이지로
+    }
 
-  if (session.user?.role !== "admin") {
-    redirect("/"); // 로그인은 했지만 관리자가 아니면 홈으로
-  }
+    if (user.role !== "ADMIN") {
+        redirect("/"); // 로그인은 했지만 관리자가 아니면 홈으로
+    }
 
-  return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold mb-2">관리자 페이지</h1>
-      <p>안녕하세요, {session.user.name}님!</p>
-    </div>
-  );
+    return (
+        <div className="p-4">
+            <h1 className="text-2xl font-bold mb-2">관리자 페이지</h1>
+            <p>안녕하세요, {user.nickname}님!</p>
+        </div>
+    );
 }
