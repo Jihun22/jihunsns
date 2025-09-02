@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import SignupButton from "@/components/SignupButton";
 
 export default function LoginPage() {
-  const [form, setForm] = useState({ email: "", password: "" });
+  const [form, setForm] = useState({ email: "", nickname:"",password: "" });
   const [message, setMessage] = useState("");
   const router = useRouter();
 
@@ -25,12 +25,13 @@ export default function LoginPage() {
         credentials: "include",
         body: JSON.stringify({
           email: form.email,
+            nickname:form.nickname,
           password: form.password,
         }),
       });
       if (res.ok) {
         setMessage("로그인 성공!");
-        router.push("/");
+        router.push("/home");
       } else {
         const data = await res.json().catch(() => ({}));
         setMessage(data?.message || "로그인 실패");

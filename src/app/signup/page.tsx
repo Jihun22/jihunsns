@@ -18,7 +18,7 @@ export default function SignupPage() {
         const res = await fetch(`${API_BASE}/api/user/check-nickname`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, nickname }),
+            body: JSON.stringify({ email: email.trim(), nickname: nickname.trim() }),
         });
         if (!res.ok) throw new Error("중복 검사 실패");
         return res.json();
@@ -30,7 +30,12 @@ export default function SignupPage() {
         setMessage("");
 
         try {
-            const duplicate = await checkDuplicate(form.email, form.nickname);
+            // 입력값 공백 제거
+            const email = form.email.trim();
+            const nickname = form.nickname.trim();
+            const password = form.password.trim();
+
+            const duplicate = await checkDuplicate(email, nickname);
 
             if (duplicate.email) {
                 setMessage("이미 사용중인 이메일");
@@ -43,7 +48,7 @@ export default function SignupPage() {
 
             const res = await fetch(`${API_BASE}/api/auth/signup`, {
                 method: "POST",
-                body: JSON.stringify(form),
+                body: JSON.stringify({ email, nickname, password }),
                 headers: { "Content-Type": "application/json" },
             });
 
