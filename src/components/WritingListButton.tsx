@@ -1,4 +1,4 @@
-"use client";
+ "use client";
 
 import { useState } from "react";
 import WritingList from "./WritingList"; // 같은 폴더 또는 경로에 따라 조정
