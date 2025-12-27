@@ -19,7 +19,12 @@ interface PostDTO {
 }
 
 async function fetchPost(id: number): Promise<PostDTO | null> {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/posts/${id}`, {
+  const apiBase =
+    process.env.NEXT_PUBLIC_API_BASE_URL ??
+    process.env.NEXTAUTH_URL ??
+    "http://localhost:8080";
+
+  const res = await fetch(`${apiBase}/api/posts/${id}`, {
     cache: "no-store",
   });
   if (res.status === 404) return null;
