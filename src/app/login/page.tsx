@@ -42,7 +42,9 @@ export default function LoginPage() {
                 localStorage.setItem("refreshToken", data.data.refreshToken);
 
                 console.log("✅ 로그인 성공, 토큰 저장 완료");
-                router.push("/"); // 홈 이동
+                window.dispatchEvent(new Event("auth:updated")); // 홈에서 로그인 시 상태 갱신
+                router.replace("/");
+                router.refresh();
             } else {
                 setMessage(data?.message || "로그인 실패");
             }
