@@ -11,7 +11,7 @@ export default function AdminButton() {
   useEffect(() => {
     (async () => {
       try {
-        const res = await fetch("/api/me", { credentials: "include", cache: "no-store" });
+        const res = await fetch("/api/user/me", { credentials: "include", cache: "no-store" });
         const data = res.ok ? ((await res.json()) as AppUser) : null;
         setMe(data);
       } catch {

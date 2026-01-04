@@ -6,6 +6,7 @@ import Image from "next/image";
 import LikeButton from "@/components/LikeButton";
 import type { AppUser } from "@/types/auth";
 
+
 // ✅ 타입 정의
 interface ImageInfo {
   id: number;
@@ -30,6 +31,19 @@ interface PostInfo {
   likes?: LikeInfo[];
 }
 
+// ✅ 공통 API 응답 타입 (Spring ApiResponse)
+type ApiResponse<T> = {
+  code: string;
+  message?: string;
+  data: T;
+};
+
+// ✅ 페이지네이션 응답 형태 대응 (PageResponse)
+type PageData<T> = {
+  items?: T[];
+  content?: T[];
+};
+
 export default function WritingList() {
   const [me, setMe] = useState<AppUser | null>(null);
   const [posts, setPosts] = useState<PostInfo[]>([]);
@@ -38,18 +52,51 @@ export default function WritingList() {
     let mounted = true;
     (async () => {
       try {
-        // 현재 로그인 유저
-        const meRes = await fetch("/api/me", { credentials: "include", cache: "no-store" });
-        const meData = meRes.ok ? ((await meRes.json()) as AppUser) : null;
-        if (mounted) setMe(meData);
+        const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080";
+        const token = localStorage.getItem("accessToken");
+        const authHeaders: Record<string, string> = token
+            ? { Authorization: `Bearer ${token}` }
+            : {};
+        // 현재 로그인 유저å
+        const meRes = await fetch(`${baseUrl}/api/user/me`, {
+          headers: authHeaders,
+          cache: "no-store",
+        });
+
+        if (meRes.ok) {
+          const meJson = (await meRes.json()) as { code: string; message?: string; data: AppUser };
+          if (mounted) setMe(meJson.data ?? null);
+        } else {
+          if (mounted) setMe(null);
+        }
 
         // 게시글 목록
-        const res = await fetch("/api/posts", { credentials: "include", cache: "no-store" });
+        const res = await fetch(`${baseUrl}/api/posts`, {
+          headers: authHeaders,
+          cache: "no-store",
+        });
         if (!res.ok) return;
-        const data = (await res.json()) as PostInfo[];
-        if (mounted) setPosts(data);
-      } catch {
-        // 생략: 에러 처리 필요 시 추가
+
+        // ✅ /api/posts 는 ApiResponse + (페이지네이션일 수 있음) 형태로 내려올 수 있음
+        const json = (await res.json()) as ApiResponse<PostInfo[] | PageData<PostInfo>>;
+        const raw = json?.data;
+
+        const list = Array.isArray(raw)
+          ? raw
+          : Array.isArray(raw?.items)
+            ? raw.items
+            : Array.isArray(raw?.content)
+              ? raw.content
+              : [];
+
+        // ✅ 최신글이 위로 오도록 createdAt 기준 내림차순 정렬
+        const sorted = [...list].sort(
+          (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+
+        if (mounted) setPosts(sorted);
+      } catch (e) {
+        // console.error(e);
       }
     })();
     return () => {
@@ -59,7 +106,7 @@ export default function WritingList() {
 
   return (
     <div className="mt-6 space-y-4">
-      {posts.map(post => (
+      {Array.isArray(posts) && posts.map(post => (
         <div key={post.id} className="border p-4 rounded shadow-sm hover:bg-gray-50 cursor-pointer">
           {/* ✅ Link 태그를 카드 전체로 적용 */}
           <Link href={`/post/${post.id}`} className="block">
