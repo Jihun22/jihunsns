@@ -46,7 +46,8 @@ async function fetchPost(id: number): Promise<PostDTO | null> {
 }
 
 export default async function Page({ params }: any) {
-  const numericId = Number(params.id);
+  const {id} = await params;
+  const numericId = Number(id);
   if (Number.isNaN(numericId)) return notFound();
 
   const post = await fetchPost(numericId);

@@ -10,6 +10,8 @@ import type { PostVM, CommentVM, AppUser } from "@/lib/types";
 export default function PostDetailClient({ post }: { post: PostVM }) {
     const router = useRouter();
 
+    const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080";
+
     // ✅ 현재 로그인 유저 (NextAuth 제거 → /api/me로 조회)
     const [me, setMe] = useState<AppUser | null>(null);
 
@@ -17,7 +19,7 @@ export default function PostDetailClient({ post }: { post: PostVM }) {
         let mounted = true;
         (async () => {
             try {
-                const res = await fetch("/api/me", { credentials: "include", cache: "no-store" });
+                const res = await fetch(`${apiBase}/api/me`, { credentials: "include", cache: "no-store" });
                 if (res.ok) {
                     const data = (await res.json()) as AppUser;
                     if (mounted) setMe(data);
@@ -41,7 +43,7 @@ export default function PostDetailClient({ post }: { post: PostVM }) {
 
     // ✅ 댓글 새로고침 (프록시 경유)
     const fetchComments = async () => {
-        const res = await fetch(`/api/comment?postId=${post.id}`, {
+        const res = await fetch(`${apiBase}/api/comment?postId=${post.id}`, {
             credentials: "include",
             cache: "no-store",
         });
@@ -57,7 +59,7 @@ export default function PostDetailClient({ post }: { post: PostVM }) {
     const handleDelete = async () => {
         if (!confirm("정말 삭제하시겠습니까?")) return;
 
-        const res = await fetch(`/api/post/${post.id}`, {
+        const res = await fetch(`${apiBase}/api/post/${post.id}`, {
             method: "DELETE",
             credentials: "include",
         });
@@ -79,7 +81,7 @@ export default function PostDetailClient({ post }: { post: PostVM }) {
     const deleteComment = async (commentId: number) => {
         if (!confirm("댓글 삭제하시겠습니까?")) return;
 
-        const res = await fetch(`/api/comment/${commentId}`, {
+        const res = await fetch(`${apiBase}/api/comment/${commentId}`, {
             method: "DELETE",
             credentials: "include",
         });
@@ -107,7 +109,7 @@ export default function PostDetailClient({ post }: { post: PostVM }) {
                 <button onClick={handleDelete} className="text-red-600">
                     🗑 삭제
                 </button>
-                <button onClick={() => router.push(`/post/${post.id}/edit`)} className="text-blue-600">
+                <button onClick={() => router.push(`${apiBase}/post/${post.id}/edit`)} className="text-blue-600">
                     ✏️ 수정
                 </button>
             </div>
