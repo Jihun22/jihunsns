@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import LikeButton from "@/components/LikeButton";
 import type { AppUser } from "@/types/auth";
+import { formatAuthorName } from "@/lib/author";
 
 
 // ✅ 타입 정의
@@ -15,7 +16,9 @@ interface ImageInfo {
 
 interface AuthorInfo {
   id: number;
-  nickname: string;
+  nickname?: string;
+  username?: string;
+  email?: string;
 }
 
 interface LikeInfo {
@@ -57,17 +60,27 @@ export default function WritingList() {
         const authHeaders: Record<string, string> = token
             ? { Authorization: `Bearer ${token}` }
             : {};
-        // 현재 로그인 유저å
-        const meRes = await fetch(`${baseUrl}/api/user/me`, {
-          headers: authHeaders,
-          cache: "no-store",
-        });
+        // 현재 로그인 유저
+        if (token) {
+          const meRes = await fetch(`${baseUrl}/api/me`, {
+            headers: authHeaders,
+            cache: "no-store",
+          });
 
-        if (meRes.ok) {
-          const meJson = (await meRes.json()) as { code: string; message?: string; data: AppUser };
-          if (mounted) setMe(meJson.data ?? null);
-        } else {
-          if (mounted) setMe(null);
+          if (meRes.ok) {
+            const raw: unknown = await meRes.json();
+            const candidate =
+              raw && typeof raw === "object" && "data" in raw ? (raw as { data?: unknown }).data : raw;
+            const parsed =
+              candidate && typeof candidate === "object" && "id" in candidate
+                ? (candidate as AppUser)
+                : null;
+            if (mounted) setMe(parsed);
+          } else if (mounted) {
+            setMe(null);
+          }
+        } else if (mounted) {
+          setMe(null);
         }
 
         // 게시글 목록
@@ -110,7 +123,7 @@ export default function WritingList() {
         <div key={post.id} className="border p-4 rounded shadow-sm hover:bg-gray-50 cursor-pointer">
           {/* ✅ Link 태그를 카드 전체로 적용 */}
           <Link href={`/post/${post.id}`} className="block">
-            <p className="text-sm text-gray-500">{post.author?.nickname}</p>
+            <p className="text-sm text-gray-500">{formatAuthorName(post.author)}</p>
             <p>{post.content}</p>
 
             {/* ✅ 이미지 표시 */}

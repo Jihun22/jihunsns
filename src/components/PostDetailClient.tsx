@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import CommentForm from "@/components/CommentForm";
 import EditCommentForm from "@/components/EditCommentForm";
 import type { PostVM, CommentVM, AppUser } from "@/lib/types";
+import { formatAuthorName } from "@/lib/author";
 
 export default function PostDetailClient({ post }: { post: PostVM }) {
     const router = useRouter();
@@ -17,23 +18,44 @@ export default function PostDetailClient({ post }: { post: PostVM }) {
 
     useEffect(() => {
         let mounted = true;
+
         (async () => {
             try {
-                const res = await fetch(`${apiBase}/api/me`, { credentials: "include", cache: "no-store" });
-                if (res.ok) {
-                    const data = (await res.json()) as AppUser;
-                    if (mounted) setMe(data);
-                } else {
+                const token = localStorage.getItem("accessToken");
+                if (!token) {
                     if (mounted) setMe(null);
+                    return;
+                }
+
+                const res = await fetch(`${apiBase}/api/me`, {
+                    method: "GET",
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                    cache: "no-store",
+                });
+
+                if (res.ok) {
+                    const raw: unknown = await res.json();
+                    const candidate =
+                        raw && typeof raw === "object" && "data" in raw ? (raw as { data?: unknown }).data : raw;
+                    const parsed =
+                        candidate && typeof candidate === "object" && "id" in candidate
+                            ? (candidate as AppUser)
+                            : null;
+                    if (mounted) setMe(parsed);
+                } else if (mounted) {
+                    setMe(null);
                 }
             } catch {
                 if (mounted) setMe(null);
             }
         })();
+
         return () => {
             mounted = false;
         };
-    }, []);
+    }, [apiBase]);
 
     const currentUserId = me ? Number(me.id) : undefined;
     const currentUserRole = me?.role; // "USER" | "ADMIN"
@@ -109,7 +131,7 @@ export default function PostDetailClient({ post }: { post: PostVM }) {
                 <button onClick={handleDelete} className="text-red-600">
                     🗑 삭제
                 </button>
-                <button onClick={() => router.push(`${apiBase}/post/${post.id}/edit`)} className="text-blue-600">
+                <button onClick={() => router.push(`/post/${post.id}/edit`)} className="text-blue-600">
                     ✏️ 수정
                 </button>
             </div>
@@ -140,7 +162,7 @@ export default function PostDetailClient({ post }: { post: PostVM }) {
                         const isAdmin = currentUserRole === "ADMIN"; // 백엔드와 대소문자 맞추기
                         return (
                             <div key={comment.id} className="border p-2 rounded">
-                                <p className="text-sm text-gray-500">{comment.author?.nickname ?? "익명"}</p>
+                                <p className="text-sm text-gray-500">{formatAuthorName(comment.author)}</p>
 
                                 {editingId === comment.id ? (
                                     <EditCommentForm

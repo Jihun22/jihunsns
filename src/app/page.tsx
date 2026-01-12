@@ -3,9 +3,10 @@
 import { useCallback, useEffect, useState } from "react";
 import HomeClient from "./HomeClient";
 import LoginPage from "./login/page";
+import type { AppUser } from "@/types/auth";
 
 export default function HomePage() {
-    const [user, setUser] = useState<any>(null);
+    const [user, setUser] = useState<AppUser | null>(null);
     const [loading, setLoading] = useState(true);
     const fetchMe = useCallback(async () => {
         setLoading(true);
@@ -19,7 +20,8 @@ export default function HomePage() {
         }
 
         try {
-            const res = await fetch("http://localhost:8080/api/user/me", {
+            const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080";
+            const res = await fetch(`${baseUrl}/api/me`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
@@ -27,11 +29,17 @@ export default function HomePage() {
             });
 
             console.log("🟡 /me status:", res.status);
-            const data = await res.json().catch(() => ({}));
+            const data: unknown = await res.json().catch(() => null);
             console.log("🟢 /me response:", data);
 
-            if (res.ok && data.code === "S001") {
-                setUser(data.data);
+            const rawUser = data && typeof data === "object" && "data" in data ? (data as { data: unknown }).data : data;
+            const parsedUser =
+                rawUser && typeof rawUser === "object" && "id" in rawUser
+                    ? (rawUser as AppUser)
+                    : null;
+
+            if (res.ok && parsedUser) {
+                setUser(parsedUser);
             } else {
                 setUser(null);
             }

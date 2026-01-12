@@ -17,6 +17,15 @@ export default function HomeClient({ user: initialUser }: { user: AppUser | null
     // 중복 호출 방지
     const inFlight = useRef(false);
 
+    const extractUser = (raw: unknown): AppUser | null => {
+        if (!raw || typeof raw !== "object") return null;
+        const withData = "data" in raw ? (raw as { data?: unknown }).data : raw;
+        if (withData && typeof withData === "object" && "id" in withData) {
+            return withData as AppUser;
+        }
+        return null;
+    };
+
     const fetchMe = async (reason: string) => {
         if (inFlight.current) return;
         inFlight.current = true;
@@ -32,7 +41,8 @@ export default function HomeClient({ user: initialUser }: { user: AppUser | null
                 return;
             }
 
-            const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/me`;
+            const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080";
+            const url = `${apiBase}/api/me`;
             const r = await fetch(url, {
                 headers: { Authorization: `Bearer ${token}` },
                 cache: "no-store",
@@ -45,15 +55,17 @@ export default function HomeClient({ user: initialUser }: { user: AppUser | null
             const text = await r.text();
             console.log("[HomeClient] /api/me body head:", text.slice(0, 80));
 
-            let json: any = null;
+            let json: unknown = null;
             try {
                 json = text ? JSON.parse(text) : null;
             } catch {
                 json = null;
             }
 
-            if (r.ok && json?.data) {
-                setUser(json.data as AppUser);
+            const parsedUser = extractUser(json);
+
+            if (r.ok && parsedUser) {
+                setUser(parsedUser);
                 setLoading(false);
                 return;
             }
