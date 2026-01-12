@@ -77,6 +77,11 @@ export default function PostDetailClient({ post }: { post: PostVM }) {
         setComments(data);
     };
 
+    useEffect(() => {
+        fetchComments();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [post.id]);
+
     // ✅ 게시글 삭제 (프록시 경유)
     const handleDelete = async () => {
         if (!confirm("정말 삭제하시겠습니까?")) return;
