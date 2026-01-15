@@ -6,6 +6,7 @@ import Image from "next/image";
 import LikeButton from "@/components/LikeButton";
 import type { AppUser } from "@/types/auth";
 import { formatAuthorName } from "@/lib/author";
+import { resolveImageUrl } from "@/lib/image";
 
 
 // ✅ 타입 정의
@@ -50,12 +51,17 @@ type PageData<T> = {
 export default function WritingList() {
   const [me, setMe] = useState<AppUser | null>(null);
   const [posts, setPosts] = useState<PostInfo[]>([]);
+  const apiBase =
+    process.env.NEXT_PUBLIC_API_BASE_URL ??
+    process.env.NEXTAUTH_URL ??
+    process.env.BACKEND_URL ??
+    "http://localhost:8080";
 
   useEffect(() => {
     let mounted = true;
     (async () => {
       try {
-        const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080";
+        const baseUrl = apiBase;
         const token = localStorage.getItem("accessToken");
         const authHeaders: Record<string, string> = token
             ? { Authorization: `Bearer ${token}` }
@@ -108,14 +114,14 @@ export default function WritingList() {
         );
 
         if (mounted) setPosts(sorted);
-      } catch (e) {
+      } catch {
         // console.error(e);
       }
     })();
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [apiBase]);
 
   return (
     <div className="mt-6 space-y-4">
@@ -129,16 +135,20 @@ export default function WritingList() {
             {/* ✅ 이미지 표시 */}
             {post.images && post.images.length > 0 && (
               <div className="flex gap-2 mt-2">
-                {post.images.map(img => (
-                  <div key={img.id} className="relative w-32 h-24">
-                    <Image
-                      src={img.url}
-                      alt="첨부 이미지"
-                      fill
-                      className="object-cover rounded border"
-                    />
-                  </div>
-                ))}
+                {post.images.map(img => {
+                  const imageSrc = resolveImageUrl(img.url, apiBase);
+                  if (!imageSrc) return null;
+                  return (
+                    <div key={img.id} className="relative w-32 h-24">
+                      <Image
+                        src={imageSrc}
+                        alt="첨부 이미지"
+                        fill
+                        className="object-cover rounded border"
+                      />
+                    </div>
+                  );
+                })}
               </div>
             )}
 
