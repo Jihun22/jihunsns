@@ -7,6 +7,7 @@ import CommentForm from "@/components/CommentForm";
 import EditCommentForm from "@/components/EditCommentForm";
 import type { PostVM, CommentVM, AppUser } from "@/lib/types";
 import { formatAuthorName } from "@/lib/author";
+import { resolveImageUrl } from "@/lib/image";
 
 export default function PostDetailClient({ post }: { post: PostVM }) {
     const router = useRouter();
@@ -86,9 +87,18 @@ export default function PostDetailClient({ post }: { post: PostVM }) {
     const handleDelete = async () => {
         if (!confirm("정말 삭제하시겠습니까?")) return;
 
-        const res = await fetch(`${apiBase}/api/post/${post.id}`, {
+        const token = localStorage.getItem("accessToken");
+        if (!token) {
+            alert("로그인이 필요합니다.");
+            return;
+        }
+
+        const res = await fetch(`${apiBase}/api/posts/${post.id}`, {
             method: "DELETE",
-            credentials: "include",
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+            cache: "no-store",
         });
 
         if (res.ok) {
@@ -108,18 +118,28 @@ export default function PostDetailClient({ post }: { post: PostVM }) {
     const deleteComment = async (commentId: number) => {
         if (!confirm("댓글 삭제하시겠습니까?")) return;
 
+        const token = localStorage.getItem("accessToken");
+        if (!token) {
+            alert("로그인이 필요합니다.");
+            return;
+        }
+
+
         const res = await fetch(`${apiBase}/api/comment/${commentId}`, {
             method: "DELETE",
-            credentials: "include",
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+            cache: "no-store",
         });
 
         if (!res.ok) {
+            let msg = "삭제 실패";
             try {
                 const data = await res.json();
-                alert(data?.error || data?.message || "삭제 실패");
-            } catch {
-                alert("삭제 실패");
-            }
+                msg = data?.message || data?.error || msg;
+            } catch {}
+            alert(msg);
             return;
         }
 
@@ -144,11 +164,15 @@ export default function PostDetailClient({ post }: { post: PostVM }) {
             {/* ✅ 이미지 출력 (next/image 최적화) */}
             {post.images && post.images.length > 0 && (
                 <div className="flex flex-wrap gap-4 my-4">
-                    {post.images.map((img) => (
-                        <div key={img.id} className="relative w-64 h-48">
-                            <Image src={img.url} alt="첨부 이미지" fill className="object-cover rounded border" />
-                        </div>
-                    ))}
+                    {post.images.map((img) => {
+                        const imageSrc = resolveImageUrl(img.url, apiBase);
+                        if (!imageSrc) return null;
+                        return (
+                            <div key={img.id} className="relative w-64 h-48">
+                                <Image src={imageSrc} alt="첨부 이미지" fill className="object-cover rounded border" />
+                            </div>
+                        );
+                    })}
                 </div>
             )}
 
