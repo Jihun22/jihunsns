@@ -68,7 +68,7 @@ export default function WritingList() {
             : {};
         // 현재 로그인 유저
         if (token) {
-          const meRes = await fetch(`${baseUrl}/api/me`, {
+          const meRes = await fetch(`${baseUrl}/api/user/me`, {
             headers: authHeaders,
             cache: "no-store",
           });

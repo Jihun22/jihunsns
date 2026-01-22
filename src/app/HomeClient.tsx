@@ -42,18 +42,18 @@ export default function HomeClient({ user: initialUser }: { user: AppUser | null
             }
 
             const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080";
-            const url = `${apiBase}/api/me`;
+            const url = `${apiBase}/api/user/me`;
             const r = await fetch(url, {
                 headers: { Authorization: `Bearer ${token}` },
                 cache: "no-store",
             });
 
             // ✅ 실패 원인을 바로 확인 가능하게 로그
-            console.log("[HomeClient] /api/me status:", r.status);
+            console.log("[HomeClient] /api/user/me status:", r.status);
 
             // r.json()이 HTML에서 터지는 케이스 방지용
             const text = await r.text();
-            console.log("[HomeClient] /api/me body head:", text.slice(0, 80));
+            console.log("[HomeClient] /api/user/me body head:", text.slice(0, 80));
 
             let json: unknown = null;
             try {

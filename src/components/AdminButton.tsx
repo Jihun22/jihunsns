@@ -20,7 +20,7 @@ export default function AdminButton() {
         }
 
         const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080";
-        const res = await fetch(`${baseUrl}/api/me`, {
+        const res = await fetch(`${baseUrl}/api/user/me`, {
           headers: { Authorization: `Bearer ${token}` },
           cache: "no-store",
         });

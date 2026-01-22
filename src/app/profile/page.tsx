@@ -7,7 +7,7 @@ import ProfilePageClient from "@/components/ProfilePageClient";
 export default async function Page() {
     const cookie = cookies().toString();
     const backendUrl = process.env.BACKEND_URL ?? process.env.NEXTAUTH_URL ?? "http://localhost:8080";
-    const res = await fetch(`${backendUrl}/api/me`, {
+    const res = await fetch(`${backendUrl}/api/user/me`, {
         headers: { cookie },
         cache: "no-store",
     });

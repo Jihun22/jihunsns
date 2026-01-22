@@ -14,7 +14,7 @@ export default function PostDetailClient({ post }: { post: PostVM }) {
 
     const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080";
 
-    // ✅ 현재 로그인 유저 (NextAuth 제거 → /api/me로 조회)
+    // ✅ 현재 로그인 유저 (NextAuth 제거 → /api/user/me로 조회)
     const [me, setMe] = useState<AppUser | null>(null);
 
     useEffect(() => {
@@ -28,7 +28,7 @@ export default function PostDetailClient({ post }: { post: PostVM }) {
                     return;
                 }
 
-                const res = await fetch(`${apiBase}/api/me`, {
+                const res = await fetch(`${apiBase}/api/user/me`, {
                     method: "GET",
                     headers: {
                         Authorization: `Bearer ${token}`,
