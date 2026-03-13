@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import HomeClient from "./HomeClient";
+import HomeClient from "../components/HomeClient";
 import LoginPage from "./login/page";
 import type { AppUser } from "@/types/auth";
 
