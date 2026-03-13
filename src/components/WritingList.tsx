@@ -158,7 +158,7 @@ export default function WritingList() {
           {/* ✅ 좋아요 버튼 */}
           <div className="mt-2">
             <LikeButton
-              postId={String(post.id)}
+              postId={(post.id)}
               initialLiked={!!(me && post.likes?.some(like => like.userId === Number(me.id)))}
               initialCount={post.likes?.length || 0}
             />
