@@ -6,7 +6,8 @@ import { headers, cookies } from "next/headers";
 // ✅ 현재 로그인 유저 가져오기
 async function getCurrentUser(): Promise<AppUser | null> {
     try {
-        const res = await fetch(`${process.env.BACKEND_URL ?? "http://localhost:8080"}/api/auth/me`, {
+        const backendUrl = process.env.BACKEND_URL ?? process.env.NEXTAUTH_URL ?? "http://localhost:8080";
+        const res = await fetch(`${backendUrl}/api/auth/me`, {
             headers: {
                 cookie: cookies().toString(),
             },

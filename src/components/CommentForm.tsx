@@ -15,21 +15,37 @@ export default function CommentForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const apiBase =
+        process.env.NEXT_PUBLIC_API_BASE_URL ??
+        process.env.NEXTAUTH_URL ??
+        "http://localhost:8080";
+
     if (!content.trim()) return;
+
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      alert("로그인이 필요합니다.");
+      return;
+    }
+
 
     setIsLoading(true);
     try {
-      const res = await fetch(`/api/comment`, {
+      const res = await fetch(`${apiBase}/api/comment`, {
         method: "POST",
         body: JSON.stringify({ content, postId }),
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`, // ✅ JWT 전달
+        },
       });
 
       if (!res.ok) throw new Error("댓글 작성 실패");
 
       setContent("");
       onSuccess?.();
-      router.refresh(); // ✅ 페이지 새로고침 (SSR 데이터 다시 불러오기)
+      router.refresh();
     } catch (error) {
       console.error(error);
       alert("댓글 작성에 실패했습니다.");

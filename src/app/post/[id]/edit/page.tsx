@@ -2,43 +2,63 @@
 
 import { notFound } from "next/navigation";
 import EditPostForm from "@/components/EditPostForm";
-import { headers, cookies } from "next/headers";
 
 export const dynamic = "force-dynamic";
 
-type PostDTO = { id: number };
+interface AuthorDTO {
+  id: number;
+  nickname?: string;
+  username?: string;
+  email?: string;
+}
+
+interface PostDTO {
+  id: number;
+  content: string;
+  createdAt: string;
+  author?: AuthorDTO;
+}
+
+// ✅ 공통 응답 포맷 대응
+interface ApiResponse<T> {
+  code: string;
+  message?: string;
+  data?: T;
+}
 
 async function fetchPost(id: number): Promise<PostDTO | null> {
-    // ✅ headers(), cookies() 둘 다 await
-    const hdrs = await headers();
-    const host = hdrs.get("host");
-    if (!host) return null;
-    const proto = process.env.NODE_ENV === "production" ? "https" : "http";
+  const apiBase =
+    process.env.NEXT_PUBLIC_API_BASE_URL ??
+    process.env.NEXTAUTH_URL ??
+    process.env.BACKEND_URL ??
+    "http://localhost:8080";
 
-    const ck = await cookies();
-    const cookie = ck.toString();
+  const res = await fetch(`${apiBase}/api/posts/${id}`, {
+    cache: "no-store",
+  });
 
-    const res = await fetch(`${proto}://${host}/api/posts/${id}`, {
-        cache: "no-store",
-        headers: { cookie },
-    });
+  if (res.status === 404) return null;
+  if (!res.ok) return null;
 
-    if (res.status === 404) return null;
-    if (!res.ok) return null;
-    return (await res.json()) as PostDTO;
+  const json = (await res.json()) as ApiResponse<PostDTO> | PostDTO;
+  if (json && typeof json === "object" && "data" in json) {
+    return (json as ApiResponse<PostDTO>).data ?? null;
+  }
+  return json as PostDTO;
 }
 
 export default async function Page({ params }: any) {
-    const numericId = Number(params?.id);
-    if (Number.isNaN(numericId)) return notFound();
+  const { id } = await params;
+  const numericId = Number(id);
+  if (Number.isNaN(numericId)) return notFound();
 
-    const post = await fetchPost(numericId);
-    if (!post) return notFound();
+  const post = await fetchPost(numericId);
+  if (!post) return notFound();
 
-    return (
-        <div className="p-6 max-w-xl mx-auto">
-            <h1 className="text-2xl font-bold mb-4">게시글 수정</h1>
-            <EditPostForm postId={post.id} />
-        </div>
-    );
+  return (
+    <div className="p-6 max-w-xl mx-auto">
+      <h1 className="text-2xl font-bold mb-4">게시글 수정</h1>
+      <EditPostForm postId={post.id} />
+    </div>
+  );
 }

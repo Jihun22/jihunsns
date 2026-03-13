@@ -6,32 +6,57 @@ import { useEffect, useState } from "react";
 import CommentForm from "@/components/CommentForm";
 import EditCommentForm from "@/components/EditCommentForm";
 import type { PostVM, CommentVM, AppUser } from "@/lib/types";
+import { formatAuthorName } from "@/lib/author";
+import { resolveImageUrl } from "@/lib/image";
 
 export default function PostDetailClient({ post }: { post: PostVM }) {
     const router = useRouter();
 
-    // ✅ 현재 로그인 유저 (NextAuth 제거 → /api/me로 조회)
+    const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080";
+
+    // ✅ 현재 로그인 유저 (NextAuth 제거 → /api/user/me로 조회)
     const [me, setMe] = useState<AppUser | null>(null);
 
     useEffect(() => {
         let mounted = true;
+
         (async () => {
             try {
-                const res = await fetch("/api/me", { credentials: "include", cache: "no-store" });
-                if (res.ok) {
-                    const data = (await res.json()) as AppUser;
-                    if (mounted) setMe(data);
-                } else {
+                const token = localStorage.getItem("accessToken");
+                if (!token) {
                     if (mounted) setMe(null);
+                    return;
+                }
+
+                const res = await fetch(`${apiBase}/api/user/me`, {
+                    method: "GET",
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                    cache: "no-store",
+                });
+
+                if (res.ok) {
+                    const raw: unknown = await res.json();
+                    const candidate =
+                        raw && typeof raw === "object" && "data" in raw ? (raw as { data?: unknown }).data : raw;
+                    const parsed =
+                        candidate && typeof candidate === "object" && "id" in candidate
+                            ? (candidate as AppUser)
+                            : null;
+                    if (mounted) setMe(parsed);
+                } else if (mounted) {
+                    setMe(null);
                 }
             } catch {
                 if (mounted) setMe(null);
             }
         })();
+
         return () => {
             mounted = false;
         };
-    }, []);
+    }, [apiBase]);
 
     const currentUserId = me ? Number(me.id) : undefined;
     const currentUserRole = me?.role; // "USER" | "ADMIN"
@@ -41,7 +66,7 @@ export default function PostDetailClient({ post }: { post: PostVM }) {
 
     // ✅ 댓글 새로고침 (프록시 경유)
     const fetchComments = async () => {
-        const res = await fetch(`/api/comment?postId=${post.id}`, {
+        const res = await fetch(`${apiBase}/api/comment?postId=${post.id}`, {
             credentials: "include",
             cache: "no-store",
         });
@@ -53,13 +78,27 @@ export default function PostDetailClient({ post }: { post: PostVM }) {
         setComments(data);
     };
 
+    useEffect(() => {
+        fetchComments();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [post.id]);
+
     // ✅ 게시글 삭제 (프록시 경유)
     const handleDelete = async () => {
         if (!confirm("정말 삭제하시겠습니까?")) return;
 
-        const res = await fetch(`/api/post/${post.id}`, {
+        const token = localStorage.getItem("accessToken");
+        if (!token) {
+            alert("로그인이 필요합니다.");
+            return;
+        }
+
+        const res = await fetch(`${apiBase}/api/posts/${post.id}`, {
             method: "DELETE",
-            credentials: "include",
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+            cache: "no-store",
         });
 
         if (res.ok) {
@@ -79,18 +118,28 @@ export default function PostDetailClient({ post }: { post: PostVM }) {
     const deleteComment = async (commentId: number) => {
         if (!confirm("댓글 삭제하시겠습니까?")) return;
 
-        const res = await fetch(`/api/comment/${commentId}`, {
+        const token = localStorage.getItem("accessToken");
+        if (!token) {
+            alert("로그인이 필요합니다.");
+            return;
+        }
+
+
+        const res = await fetch(`${apiBase}/api/comment/${commentId}`, {
             method: "DELETE",
-            credentials: "include",
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+            cache: "no-store",
         });
 
         if (!res.ok) {
+            let msg = "삭제 실패";
             try {
                 const data = await res.json();
-                alert(data?.error || data?.message || "삭제 실패");
-            } catch {
-                alert("삭제 실패");
-            }
+                msg = data?.message || data?.error || msg;
+            } catch {}
+            alert(msg);
             return;
         }
 
@@ -115,11 +164,15 @@ export default function PostDetailClient({ post }: { post: PostVM }) {
             {/* ✅ 이미지 출력 (next/image 최적화) */}
             {post.images && post.images.length > 0 && (
                 <div className="flex flex-wrap gap-4 my-4">
-                    {post.images.map((img) => (
-                        <div key={img.id} className="relative w-64 h-48">
-                            <Image src={img.url} alt="첨부 이미지" fill className="object-cover rounded border" />
-                        </div>
-                    ))}
+                    {post.images.map((img) => {
+                        const imageSrc = resolveImageUrl(img.url, apiBase);
+                        if (!imageSrc) return null;
+                        return (
+                            <div key={img.id} className="relative w-64 h-48">
+                                <Image src={imageSrc} alt="첨부 이미지" fill className="object-cover rounded border" />
+                            </div>
+                        );
+                    })}
                 </div>
             )}
 
@@ -138,7 +191,7 @@ export default function PostDetailClient({ post }: { post: PostVM }) {
                         const isAdmin = currentUserRole === "ADMIN"; // 백엔드와 대소문자 맞추기
                         return (
                             <div key={comment.id} className="border p-2 rounded">
-                                <p className="text-sm text-gray-500">{comment.author?.nickname ?? "익명"}</p>
+                                <p className="text-sm text-gray-500">{formatAuthorName(comment.author)}</p>
 
                                 {editingId === comment.id ? (
                                     <EditCommentForm

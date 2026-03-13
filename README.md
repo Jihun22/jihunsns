@@ -60,11 +60,12 @@ jihunsns/
 2. 환경변수 설정
 
    ```bash
-
-   cp .env.example .env
-   # .env 파일에 DATABASE_URL 등 직접 입력
-
+   cp .env.example .env.local
+   # 로컬 개발에 맞게 값들을 업데이트하세요.
    ```
+
+   - 운영 배포 시에는 `.env.production` 파일을 생성해 동일한 키를 프로덕션 값으로 채워주세요.
+   - 공통으로 사용하는 키: `DATABASE_URL`, `NEXTAUTH_SECRET`, `NEXTAUTH_URL`, `BACKEND_URL`, `NEXT_PUBLIC_API_BASE_URL`
 
 3. Docker로 postgreSql실행
    ```bash

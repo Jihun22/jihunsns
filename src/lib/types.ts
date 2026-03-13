@@ -2,7 +2,12 @@
 export type Role = "USER" | "ADMIN";
 
 // 서버 응답 DTO (optional 많게)
-export interface AuthorDTO { id: number; nickname?: string }
+export interface AuthorDTO {
+    id: number;
+    nickname?: string;
+    username?: string;
+    email?: string;
+}
 export interface CommentDTO {
     id: number;
     content: string;
@@ -20,7 +25,12 @@ export interface PostDTO {
 }
 
 // 클라이언트에서 쓰는 확정 VM (필수/배열 보장, author는 optional)
-export interface AuthorVM { id: number; nickname?: string }
+export interface AuthorVM {
+    id: number;
+    nickname?: string;
+    username?: string;
+    email?: string;
+}
 export interface CommentVM {
     id: number;
     content: string;

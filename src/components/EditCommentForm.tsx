@@ -15,16 +15,34 @@ export default function EditCommentForm({
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
+  const apiBase =
+      process.env.NEXT_PUBLIC_API_BASE_URL ??
+      process.env.NEXTAUTH_URL ??
+      "http://localhost:8080";
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setMessage("");
+
+    if (!content.trim()) {
+      setMessage("내용을 입력해주세요.");
+      return;
+    }
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      setMessage("로그인이 필요합니다.");
+      return;
+    }
     setLoading(true);
 
-    const res = await fetch(`/api/comment/${commentId}`, {
+    const res = await fetch(`${apiBase}/api/comment/${commentId}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({ content }),
+      cache: "no-cache",
     });
 
     const result = await res.json();

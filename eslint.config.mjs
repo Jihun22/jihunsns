@@ -16,10 +16,10 @@ export default [
             "@typescript-eslint/ban-ts-comment": [
                 "warn", // ✅ 오류 대신 경고로 완화
                 {
-                    tsIgnore: false,       // ✅ @ts-ignore 허용
-                    tsExpectError: true,
-                    tsNocheck: true,
-                    tsCheck: true,
+                    "ts-ignore": false,
+                    "ts-expect-error": true,
+                    "ts-nocheck": true,
+                    "ts-check": true,
                 },
             ],
         },

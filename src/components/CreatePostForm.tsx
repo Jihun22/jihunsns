@@ -1,25 +1,17 @@
-// src/components/CreatePostForm.tsx
 "use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 export default function CreatePostForm() {
-  //✅글쓰기 폼
   const [content, setContent] = useState("");
-  const router = useRouter();
-
-  //✅이미지 관련
   const [images, setImages] = useState<File[]>([]);
   const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
-  const [loading, setLoading] = useState(false); // ✅ 수정
-
-  //✅이미지 파일 선언
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setImages(Array.from(e.target.files));
-    }
+    if (e.target.files) setImages(Array.from(e.target.files));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -27,36 +19,50 @@ export default function CreatePostForm() {
     setLoading(true);
     setMessage("");
 
+    if (!content.trim()) {
+      setMessage("내용을 입력하세요.");
+      setLoading(false);
+      return;
+    }
+
     const formData = new FormData();
     formData.append("content", content);
-    images.forEach(img => formData.append("image", img));
+    images.forEach((img) => formData.append("image", img)); // 서버 키가 image인지 확인!
 
     try {
-      const res = await fetch("/api/post", {
+      const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+      if (!baseUrl) throw new Error("NEXT_PUBLIC_API_BASE_URL 환경변수가 없습니다.");
+
+      const token = localStorage.getItem("accessToken");
+
+      const res = await fetch(`${baseUrl}/api/posts`, {
         method: "POST",
         body: formData,
+        headers: token ? { Authorization : `Bearer ${token}`} : undefined,
+        // 인증/세션 쿠키 필요하면 아래 추가
+        // credentials: "include",
       });
 
-      interface ResultType {
-        error?: string;
-      }
-      let result: ResultType = {};
+      const text = await res.text(); // ✅ 항상 text로 먼저 받기
+      let data: any = {};
       try {
-        result = await res.json();
+        data = text ? JSON.parse(text) : {};
       } catch {
-        result = { error: "응답 파싱 오류" };
+        data = { error: "응답이 JSON이 아닙니다.", raw: text };
       }
 
-      if (res.ok) {
-        alert("게시글이 등록되었습니다!");
-        setContent("");
-        setImages([]);
-        router.push("/");
-      } else {
-        setMessage(result.error || "등록 실패");
+      if (!res.ok) {
+        setMessage(data.error || `등록 실패 (HTTP ${res.status})`);
+        return;
       }
-    } catch (error) {
-      console.error("등록 중 오류:", error);
+
+      alert("게시글이 등록되었습니다!");
+      setContent("");
+      setImages([]);
+      router.replace("/");
+      router.refresh();
+    } catch (err) {
+      console.error(err);
       setMessage("요청 실패");
     } finally {
       setLoading(false);
@@ -64,40 +70,36 @@ export default function CreatePostForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-2">
+      <form onSubmit={handleSubmit} className="space-y-2">
       <textarea
-        value={content}
-        onChange={e => setContent(e.target.value)}
-        placeholder="내용을 입력하세요..."
-        className="w-full border p-2"
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          placeholder="내용을 입력하세요..."
+          className="w-full border p-2"
       />
-      {/* 이미지 업로드 */}
-      <label className="inline-block bg-blue-500 text-white px-4 py-2 rounded cursor-pointer hover:bg-blue-600">
-        이미지 선택
-        <input
-          type="file"
-          accept="image/*"
-          multiple
-          onChange={handleImageChange}
-          className="hidden"
-        />
-      </label>
-      {/* 선택한 파일 이름 목록 */}
-      {images.length > 0 && (
-        <div className="text-sm text-gray-700 space-y-1">
-          {images.map((file, index) => (
-            <p key={index}> {file.name}</p>
-          ))}
-        </div>
-      )}
-      <button
-        type="submit"
-        className="bg-blue-500 text-white px-4 py-2 rounded disabled:opacity-50"
-        disabled={loading}
-      >
-        {loading ? "등록 중..." : "게시글 등록"}
-      </button>
-      {message && <p className="text-green-600"> {message} </p>}
-    </form>
+
+        <label className="inline-block bg-blue-500 text-white px-4 py-2 rounded cursor-pointer hover:bg-blue-600">
+          이미지 선택
+          <input type="file" accept="image/*" multiple onChange={handleImageChange} className="hidden" />
+        </label>
+
+        {images.length > 0 && (
+            <div className="text-sm text-gray-700 space-y-1">
+              {images.map((file, index) => (
+                  <p key={index}>{file.name}</p>
+              ))}
+            </div>
+        )}
+
+        <button
+            type="submit"
+            className="bg-blue-500 text-white px-4 py-2 rounded disabled:opacity-50"
+            disabled={loading}
+        >
+          {loading ? "등록 중..." : "게시글 등록"}
+        </button>
+
+        {message && <p className="text-red-600">{message}</p>}
+      </form>
   );
 }
