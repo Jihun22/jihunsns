@@ -1,8 +1,8 @@
 "use client";
-import { useState } from "react";
+import {useEffect, useState } from "react";
 
 interface LikeButtonProps {
-  postId: string | number;
+  postId: number;
   initialLiked: boolean;
   initialCount: number;
 }
@@ -10,6 +10,14 @@ interface LikeButtonProps {
 export default function LikeButton({ postId, initialLiked, initialCount }: LikeButtonProps) {
   const [liked, setLiked] = useState(initialLiked);
   const [count, setCount] = useState(initialCount);
+
+  useEffect(() => {
+    setLiked(initialLiked);
+  }, [initialLiked]);
+
+  useEffect(() => {
+    setCount(initialCount);
+  }, [initialCount]);
 
   const toggleLike = async () => {
     const apiBase =
@@ -26,8 +34,10 @@ export default function LikeButton({ postId, initialLiked, initialCount }: LikeB
     const res = await fetch(`${apiBase}/api/like/${postId}`, {
       method: "POST",
       headers: {
+        "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
+      body: JSON.stringify({postId})
     });
 
     if (!res.ok) {
@@ -37,6 +47,7 @@ export default function LikeButton({ postId, initialLiked, initialCount }: LikeB
       alert(err?.message ?? "좋아요 실패");
       return;
     }
+
 
     const data = await res.json();
     setLiked(data.liked);

@@ -22,17 +22,14 @@ interface AuthorInfo {
   email?: string;
 }
 
-interface LikeInfo {
-  userId: number;
-}
-
 interface PostInfo {
   id: number;
   content: string;
   createdAt: string;
   author?: AuthorInfo;
   images?: ImageInfo[];
-  likes?: LikeInfo[];
+  likeCount?: number;
+  likedByMe?: boolean;
 }
 
 // ✅ 공통 API 응답 타입 (Spring ApiResponse)
@@ -159,8 +156,8 @@ export default function WritingList() {
           <div className="mt-2">
             <LikeButton
               postId={(post.id)}
-              initialLiked={!!(me && post.likes?.some(like => like.userId === Number(me.id)))}
-              initialCount={post.likes?.length || 0}
+              initialLiked={!!post.likedByMe}
+              initialCount={post.likeCount || 0}
             />
           </div>
         </div>
