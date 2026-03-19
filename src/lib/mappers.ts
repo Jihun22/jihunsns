@@ -1,13 +1,14 @@
 // src/lib/mappers.ts
 import type { AppUserDTO, AppUser, Role } from "@/types/auth";
 
-function normalizeRole(raw: AppUserDTO["role"]): Role {
-    const val =
-        Array.isArray(raw) ? raw[0] :
-            typeof raw === "object" && raw && "name" in raw ? (raw as any).name :
-                String(raw || "");
+function hasRoleName(value: unknown): value is { name: string } {
+    return typeof value === "object" && value !== null && "name" in value;
+}
 
-    const upper = val.replace(/^ROLE_/, "").toUpperCase();
+function normalizeRole(raw: AppUserDTO["role"]): Role {
+    const candidate = Array.isArray(raw) ? raw[0] : raw;
+    const value = hasRoleName(candidate) ? candidate.name : candidate ?? "";
+    const upper = String(value).replace(/^ROLE_/, "").toUpperCase();
     return upper === "ADMIN" ? "ADMIN" : "USER";
 }
 

@@ -5,6 +5,67 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { resolveImageUrl } from "@/lib/image";
 
+type EditPostData = {
+  content?: string;
+  images?: { id: number; url: string }[];
+};
+
+type ApiEnvelope = {
+  data?: unknown;
+  message?: unknown;
+  error?: unknown;
+  raw?: unknown;
+};
+
+const parseJson = (text: string): unknown => {
+  if (!text) return null;
+  try {
+    return JSON.parse(text);
+  } catch {
+    return { raw: text };
+  }
+};
+
+const unwrapApiData = (payload: unknown): unknown => {
+  if (payload && typeof payload === "object" && "data" in payload) {
+    return (payload as ApiEnvelope).data;
+  }
+  return payload;
+};
+
+const isEditPostData = (value: unknown): value is EditPostData => {
+  if (!value || typeof value !== "object") return false;
+  const candidate = value as Record<string, unknown>;
+  const content = candidate.content;
+  const images = candidate.images;
+
+  const contentValid = content === undefined || typeof content === "string";
+  const imagesValid =
+    images === undefined ||
+    (Array.isArray(images) &&
+      images.every(
+        (img) =>
+          !!img &&
+          typeof img === "object" &&
+          typeof (img as { id?: unknown }).id === "number" &&
+          typeof (img as { url?: unknown }).url === "string",
+      ));
+
+  return contentValid && imagesValid;
+};
+
+const extractServerMessage = (value: unknown): string | undefined => {
+  if (value && typeof value === "object") {
+    const envelope = value as ApiEnvelope;
+    if (typeof envelope.message === "string") return envelope.message;
+    if (typeof envelope.error === "string") return envelope.error;
+    if (typeof envelope.raw === "string") return envelope.raw;
+  } else if (typeof value === "string") {
+    return value;
+  }
+  return undefined;
+};
+
 type Props = {
   postId: number;
 };
@@ -38,25 +99,15 @@ export default function EditPostForm({ postId }: Props) {
         });
 
         const text = await res.text();
-        let payload: any = null;
-        try {
-          payload = text ? JSON.parse(text) : null;
-        } catch {
-          payload = null;
-        }
+        const payload = parseJson(text);
+        const data = unwrapApiData(payload);
 
-        const data =
-          payload && typeof payload === "object" && "data" in payload ? (payload as { data?: unknown }).data : payload;
-
-        if (active && res.ok && data && typeof data === "object") {
-          setContent(typeof (data as { content?: string }).content === "string" ? (data as { content?: string }).content! : "");
-          setExistingImages(Array.isArray((data as { images?: { id: number; url: string }[] }).images) ? ((data as { images?: { id: number; url: string }[] }).images as { id: number; url: string }[]) : []);
+        if (active && res.ok && isEditPostData(data)) {
+          setContent(data.content ?? "");
+          setExistingImages(data.images ?? []);
         } else if (active && !res.ok) {
-          setMessage(
-            (data as { message?: string; error?: string })?.message ||
-              (data as { error?: string })?.error ||
-              "게시글 정보를 불러오지 못했습니다.",
-          );
+          const errorMessage = extractServerMessage(data ?? payload);
+          setMessage(errorMessage ?? "게시글 정보를 불러오지 못했습니다.");
         }
       } catch {
         if (active) setMessage("게시글 정보를 불러오지 못했습니다.");
@@ -99,16 +150,8 @@ export default function EditPostForm({ postId }: Props) {
       });
 
       const text = await res.text();
-      let payload: any = null;
-      try {
-        payload = text ? JSON.parse(text) : null;
-      } catch {
-        payload = text ? { raw: text } : null;
-      }
-
-      const errorMessage =
-        (payload && typeof payload === "object" && "message" in payload && (payload as { message?: string }).message) ||
-        (payload && typeof payload === "object" && "error" in payload && (payload as { error?: string }).error);
+      const payload = parseJson(text);
+      const errorMessage = extractServerMessage(payload);
 
       if (res.ok) {
         setMessage("게시글이 수정되었습니다.");

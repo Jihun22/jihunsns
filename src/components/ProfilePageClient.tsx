@@ -121,8 +121,9 @@ export default function ProfilePageClient() {
             setMsg({ text: "닉네임 변경 완료!", type: "success" });
 
             startTransition(() => router.refresh());
-        } catch (e: any) {
-            setMsg({ text: e?.message || "닉네임 변경 실패", type: "error" });
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : "닉네임 변경 실패";
+            setMsg({ text: message, type: "error" });
         } finally {
             setSaving(false);
         }
@@ -151,8 +152,12 @@ export default function ProfilePageClient() {
                         if (msg.text) setMsg({ text: "", type: "" });
                     }}
                     onKeyDown={(e) => {
-                        // @ts-ignore
-                        if (e.key === "Enter" && !e.nativeEvent.isComposing) onSave();
+                        const isComposing =
+                            "isComposing" in e.nativeEvent &&
+                            typeof e.nativeEvent.isComposing === "boolean"
+                                ? e.nativeEvent.isComposing
+                                : false;
+                        if (e.key === "Enter" && !isComposing) onSave();
                     }}
                     className="border p-2 w-full"
                     placeholder="새 닉네임"

@@ -3,6 +3,12 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
+type CreatePostError = {
+  error?: string;
+  message?: string;
+  raw?: string;
+};
+
 export default function CreatePostForm() {
   const [content, setContent] = useState("");
   const [images, setImages] = useState<File[]>([]);
@@ -38,21 +44,21 @@ export default function CreatePostForm() {
       const res = await fetch(`${baseUrl}/api/posts`, {
         method: "POST",
         body: formData,
-        headers: token ? { Authorization : `Bearer ${token}`} : undefined,
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
         // 인증/세션 쿠키 필요하면 아래 추가
         // credentials: "include",
       });
 
       const text = await res.text(); // ✅ 항상 text로 먼저 받기
-      let data: any = {};
+      let data: CreatePostError | null = null;
       try {
-        data = text ? JSON.parse(text) : {};
+        data = text ? (JSON.parse(text) as CreatePostError) : {};
       } catch {
         data = { error: "응답이 JSON이 아닙니다.", raw: text };
       }
 
       if (!res.ok) {
-        setMessage(data.error || `등록 실패 (HTTP ${res.status})`);
+        setMessage(data?.error || data?.message || `등록 실패 (HTTP ${res.status})`);
         return;
       }
 

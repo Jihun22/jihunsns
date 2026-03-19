@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import LikeButton from "@/components/LikeButton";
-import type { AppUser } from "@/types/auth";
 import { formatAuthorName } from "@/lib/author";
 import { resolveImageUrl } from "@/lib/image";
 
@@ -46,7 +45,6 @@ type PageData<T> = {
 };
 
 export default function WritingList() {
-  const [me, setMe] = useState<AppUser | null>(null);
   const [posts, setPosts] = useState<PostInfo[]>([]);
   const apiBase =
     process.env.NEXT_PUBLIC_API_BASE_URL ??
@@ -58,36 +56,10 @@ export default function WritingList() {
     let mounted = true;
     (async () => {
       try {
-        const baseUrl = apiBase;
         const token = localStorage.getItem("accessToken");
-        const authHeaders: Record<string, string> = token
-            ? { Authorization: `Bearer ${token}` }
-            : {};
-        // 현재 로그인 유저
-        if (token) {
-          const meRes = await fetch(`${baseUrl}/api/user/me`, {
-            headers: authHeaders,
-            cache: "no-store",
-          });
+        const authHeaders: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
 
-          if (meRes.ok) {
-            const raw: unknown = await meRes.json();
-            const candidate =
-              raw && typeof raw === "object" && "data" in raw ? (raw as { data?: unknown }).data : raw;
-            const parsed =
-              candidate && typeof candidate === "object" && "id" in candidate
-                ? (candidate as AppUser)
-                : null;
-            if (mounted) setMe(parsed);
-          } else if (mounted) {
-            setMe(null);
-          }
-        } else if (mounted) {
-          setMe(null);
-        }
-
-        // 게시글 목록
-        const res = await fetch(`${baseUrl}/api/posts`, {
+        const res = await fetch(`${apiBase}/api/posts`, {
           headers: authHeaders,
           cache: "no-store",
         });
