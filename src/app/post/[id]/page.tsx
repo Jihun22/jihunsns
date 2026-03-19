@@ -2,35 +2,34 @@ import { notFound } from "next/navigation";
 import BackButton from "@/components/BackButton";
 import PostDetailClient from "@/components/PostDetailClient";
 import { formatAuthorName } from "@/lib/author";
+import type { PostDTO, PostVM, CommentVM } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
-
-interface AuthorDTO {
-  id: number;
-  nickname?: string;
-  username?: string;
-  email?: string;
-}
-
-interface PostDTO {
-  id: number;
-  content: string;
-  createdAt: string;
-  author?: AuthorDTO;
-  images?: Array<{ id: number; url: string }>;
-  comments?: Array<{
-    id: number;
-    content: string;
-    createdAt: string;
-    author?: AuthorDTO;
-  }>;
-}
 
 // ✅ Spring 공통 응답 래퍼(ApiResponse) 대응
 interface ApiResponse<T> {
   code: string;
   message?: string;
   data: T;
+}
+
+function toPostVM(dto: PostDTO): PostVM {
+  const comments: CommentVM[] = (dto.comments ?? []).map((comment) => ({
+    id: comment.id,
+    content: comment.content ?? "",
+    createdAt: comment.createdAt,
+    author: comment.author,
+  }));
+
+  return {
+    id: dto.id,
+    content: dto.content ?? "",
+    title: dto.title,
+    createdAt: dto.createdAt,
+    author: dto.author,
+    images: dto.images ?? [],
+    comments,
+  };
 }
 
 async function fetchPost(id: number): Promise<PostDTO | null> {
@@ -53,20 +52,27 @@ async function fetchPost(id: number): Promise<PostDTO | null> {
   return json as PostDTO;
 }
 
-export default async function Page({ params }: any) {
-  const {id} = await params;
+type PageProps = {
+  params: Promise<{
+    id: string;
+  }>;
+};
+
+export default async function Page({ params }: PageProps) {
+  const { id } = await params;
   const numericId = Number(id);
   if (Number.isNaN(numericId)) return notFound();
 
-  const post = await fetchPost(numericId);
-  if (!post) return notFound();
+  const postDto = await fetchPost(numericId);
+  if (!postDto) return notFound();
+
+  const post = toPostVM(postDto);
 
   return (
     <div className="p-6">
       <h1 className="text-xl font-bold mb-2">게시글 상세</h1>
       <p className="text-gray-500">작성자: {formatAuthorName(post.author, "(알 수 없음)")}</p>
 
-      {/* @ts-expect-error: Next.js type generation for PageProps is stale and incorrectly requires Promise */}
       <PostDetailClient post={post} />
 
       <p className="text-xs text-gray-400">

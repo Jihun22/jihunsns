@@ -3,6 +3,13 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import SignupButton from "@/components/SignupButton";
+import SocialLoginButtons from "@/components/SocialLoginButtons";
+
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_BASE_URL ??
+  process.env.NEXTAUTH_URL ??
+  process.env.BACKEND_URL ??
+  "http://localhost:8080";
 
 export default function LoginPage() {
     const [form, setForm] = useState({ email: "", password: "" });
@@ -18,7 +25,7 @@ export default function LoginPage() {
         setMessage("");
 
         try {
-            const res = await fetch("http://localhost:8080/api/auth/login", {
+            const res = await fetch(`${API_BASE}/api/auth/login`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -78,6 +85,7 @@ export default function LoginPage() {
                 <SignupButton />
             </form>
             {message && <p className="mt-2 text-sm text-red-500">{message}</p>}
+            <SocialLoginButtons />
         </div>
     );
 }

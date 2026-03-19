@@ -1,5 +1,3 @@
-// @ts-ignore
-
 import { notFound } from "next/navigation";
 import EditPostForm from "@/components/EditPostForm";
 
@@ -47,7 +45,13 @@ async function fetchPost(id: number): Promise<PostDTO | null> {
   return json as PostDTO;
 }
 
-export default async function Page({ params }: any) {
+type PageProps = {
+  params: Promise<{
+    id: string;
+  }>;
+};
+
+export default async function Page({ params }: PageProps) {
   const { id } = await params;
   const numericId = Number(id);
   if (Number.isNaN(numericId)) return notFound();

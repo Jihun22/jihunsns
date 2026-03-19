@@ -1,7 +1,7 @@
 // src/app/admin/page.tsx
 import { redirect } from "next/navigation";
 import type { AppUser } from "@/types/auth";
-import { headers, cookies } from "next/headers";
+import { cookies } from "next/headers";
 
 // ✅ 현재 로그인 유저 가져오기
 async function getCurrentUser(): Promise<AppUser | null> {

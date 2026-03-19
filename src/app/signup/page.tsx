@@ -5,6 +5,16 @@ import { useRouter } from "next/navigation";
 const API_BASE =
     process.env.NEXT_PUBLIC_API_BASE_URL ?? process.env.NEXTAUTH_URL ?? "http://localhost:8080";
 
+type DuplicateCheckResponse = {
+    email?: boolean;
+    nickname?: boolean;
+};
+
+type SignupResponse = {
+    error?: string;
+    message?: string;
+};
+
 export default function SignupPage() {
     const router = useRouter();
     const [form, setForm] = useState({ email: "", nickname: "", password: "" });
@@ -15,14 +25,14 @@ export default function SignupPage() {
         setForm({ ...form, [e.target.name]: e.target.value });
     };
 
-    const checkDuplicate = async (email: string, nickname: string) => {
+    const checkDuplicate = async (email: string, nickname: string): Promise<DuplicateCheckResponse> => {
         const res = await fetch(`${API_BASE}/api/user/check-nickname`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email: email.trim(), nickname: nickname.trim() }),
         });
         if (!res.ok) throw new Error("중복 검사 실패");
-        return res.json();
+        return (await res.json()) as DuplicateCheckResponse;
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -53,16 +63,16 @@ export default function SignupPage() {
                 headers: { "Content-Type": "application/json" },
             });
 
-            let data: any = {};
+            let data: SignupResponse | null = null;
             try {
-                data = await res.json();
+                data = (await res.json()) as SignupResponse;
             } catch {}
 
             if (res.ok) {
                 setMessage("회원가입 성공!");
                 router.push("/login");
             } else {
-                setMessage(data?.error || "회원가입 실패");
+                setMessage(data?.error || data?.message || "회원가입 실패");
             }
         } catch (err) {
             console.error("회원가입 오류", err);
