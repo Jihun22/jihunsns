@@ -5,13 +5,7 @@ import { useState } from "react";
 
 type Provider = "google" | "naver" | "kakao";
 
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_BASE_URL ??
-  process.env.NEXTAUTH_URL ??
-  process.env.BACKEND_URL ??
-  "http://localhost:8080";
-
-const CALLBACK_PATH = process.env.NEXT_PUBLIC_OAUTH_CALLBACK_PATH ?? "/oauth/callback";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080";
 
 const trimTrailingSlash = (value: string) => value.replace(/\/+$/, "");
 
@@ -24,8 +18,7 @@ export default function SocialLoginButtons() {
 
     try {
       const backend = trimTrailingSlash(API_BASE);
-      const callbackUrl = new URL(CALLBACK_PATH, window.location.origin).toString();
-      const providerUrl = `${backend}/oauth2/authorization/${provider}?redirect_uri=${encodeURIComponent(callbackUrl)}`;
+      const providerUrl = `${backend}/oauth2/authorization/${provider}`;
 
       window.location.href = providerUrl;
     } catch (err) {
