@@ -33,7 +33,7 @@ export default function SocialLoginButtons() {
       <button type="button" className="social-button w-full" onClick={() => handleSocialLogin("google")} aria-label="Google 계정으로 로그인">
         <div className="social-image-wrapper">
           <Image
-            src="/signin-assets/Web (mobile + desktop)/png@4x/light/web_light_sq_ctn@4x.png"
+            src="/google-login-button.svg"
             alt="Google 계정으로 로그인"
             width={300}
             height={45}
