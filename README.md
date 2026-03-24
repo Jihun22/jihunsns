@@ -67,13 +67,14 @@ jihunsns/
 
    - 운영 배포 시에는 `.env.production` 파일을 생성해 동일한 키를 프로덕션 값으로 채워주세요.
    - 공통으로 사용하는 키: `DATABASE_URL`, `NEXTAUTH_SECRET`, `NEXTAUTH_URL`, `BACKEND_URL`, `NEXT_PUBLIC_API_BASE_URL`, `NEXT_PUBLIC_OAUTH_CALLBACK_PATH`
-   - 소셜 로그인은 `${BACKEND_URL}/oauth2/authorization/{provider}`로 리디렉션하며, `NEXT_PUBLIC_OAUTH_CALLBACK_PATH`(기본 `/oauth/callback`)로 되돌아온 뒤 `accessToken`/`refreshToken`을 쿼리스트링으로 전달해야 합니다.
+   - 소셜 로그인 시작 URL은 `${NEXT_PUBLIC_API_BASE_URL}/oauth2/authorization/{provider}` 입니다.
 
 ### 🔐 소셜 로그인 흐름
 
-1. `/login` 페이지에서 원하는 소셜 버튼을 클릭하면 `${NEXT_PUBLIC_API_BASE_URL}/oauth2/authorization/{provider}?redirect_uri=${ORIGIN}${NEXT_PUBLIC_OAUTH_CALLBACK_PATH}` 형태로 백엔드에 이동합니다.
-2. 백엔드 OAuth 인증이 완료되면 `redirect_uri`로 다시 돌아오면서 `accessToken` (필수), `refreshToken` (선택), `next` (선택) 값을 쿼리스트링으로 포함합니다.
-3. 프런트의 `/oauth/callback` 페이지는 토큰을 `localStorage`에 저장하고 `auth:updated` 이벤트를 발생시킨 후 홈으로 리디렉트합니다.
+1. `/login` 페이지에서 원하는 소셜 버튼을 클릭하면 `${NEXT_PUBLIC_API_BASE_URL}/oauth2/authorization/{provider}` 형태로 백엔드에 이동합니다.
+2. OAuth 제공자 콜백은 백엔드의 `/login/oauth2/code/{provider}` 에서 처리합니다.
+3. 백엔드 인증이 완료되면 프런트의 `NEXT_PUBLIC_OAUTH_CALLBACK_PATH`(기본 `/oauth/callback`)로 다시 이동하면서 `accessToken` (필수), `refreshToken` (선택), `next` (선택) 값을 쿼리스트링으로 포함합니다.
+4. 프런트의 `/oauth/callback` 페이지는 토큰을 `localStorage`에 저장하고 `auth:updated` 이벤트를 발생시킨 후 홈으로 리디렉트합니다.
 
 3. Docker로 postgreSql실행
    ```bash
@@ -111,9 +112,9 @@ jihunsns/
    ```bash
    docker compose -f docker-compose.prod.yml up -d --build
    ```
-   - `web` 서비스가 Next.js 앱을 빌드하고 3000번 포트를 노출합니다.
+   - `web` 서비스가 Next.js 앱을 standalone 모드로 빌드하고 기본적으로 호스트 `3000` 포트를 사용합니다.
+   - 호스트 `3000` 포트가 이미 사용 중이면 `WEB_PORT=3001 docker compose -f docker-compose.prod.yml up -d --build` 처럼 다른 포트로 띄울 수 있습니다.
    - 이 프로덕션용 Compose 파일에는 DB가 포함되지 않으므로, OCI의 PostgreSQL 인스턴스 혹은 별도 서버에서 `DATABASE_URL`로 접근 가능해야 합니다.
-   - 업로드 파일은 `uploads-data` 볼륨으로 OCI 인스턴스 디스크에 저장됩니다.
 
 3. **마이그레이션/관리 작업(필요 시)**  
    ```bash
